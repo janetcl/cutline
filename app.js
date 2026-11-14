@@ -1,16 +1,16 @@
 // Cutline editor: beats on the left, the 3D court in the middle, the inspector on
 // the right and the beat timeline at the bottom.
-import { CourtScene, W } from './scene.js?v=20261116b';
-import { QUIZ } from './quiz.js?v=20261116b';
+import { CourtScene, W } from './scene.js?v=20261116c';
+import { QUIZ } from './quiz.js?v=20261116c';
 import * as THREE from 'three';
-import { PRESETS } from './plays.js?v=20261116b';
+import { PRESETS } from './plays.js?v=20261116c';
 import {
   THEMES, TEAMS, MATCHUPS, teamsOf, SKINS, HAIRS, STYLES, POSITIONS, PACES, ZONES, FLOORS, PAINTS, LINE_COLORS, BORDERS, courtLook, uid, clampUV, newPlay, validate, flipPlay,
   posAt, moveOf, holderAt, actionOf, timing, beatAt, sample, marksFor, thumbSVG,
   libraryIds, loadPlay, savePlay, deletePlay, lastId, savedAt, encodeShare, decodeShare,
-} from './model.js?v=20261116b';
-import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261116b';
-import { icon, hydrateIcons } from './js/icons.js?v=20261116b';
+} from './model.js?v=20261116c';
+import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261116c';
+import { icon, hydrateIcons } from './js/icons.js?v=20261116c';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1564,6 +1564,7 @@ window.__court = {
   get play() { return play; }, ui, scene, setPlaying, selectBeat, loadInto, PRESETS, enterWatch, exitWatch, showQueueItem, enterQuiz, startQuiz, answerQuiz, quizCam,
   step(dt) { ui.manual = true; ui.fixedDt = dt; frame(performance.now()); },
   look(fn) { lookChange(fn); },
+  W,
   // Screen position (CSS px) of a court spot, for scripted demos.
   toScreen(u, v, y = 0) { const p = W(u, v, y).project(scene.camera); const r = scene.renderer.domElement.getBoundingClientRect(); return [r.left + (p.x + 1) / 2 * r.width, r.top + (1 - p.y) / 2 * r.height]; },
   playerScreen(id) { const x = scene.people.get(id); if (!x) return null; const p = x.root.position.clone(); p.y += 1.0; p.project(scene.camera); const r = scene.renderer.domElement.getBoundingClientRect(); return [r.left + (p.x + 1) / 2 * r.width, r.top + (1 - p.y) / 2 * r.height]; },

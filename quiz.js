@@ -158,4 +158,78 @@ export const QUIZ = [
     ],
     rule: 'Defender turns their head → seal and show a target.',
   },
+  {
+    id: 'down-screen-pop', title: 'Read the down screen', play: 'preset-down-screen', you: 'o2', freeze: [2, 0.04],
+    // X2 ducks under 4's screen toward the paint.
+    defense: { d2: { beat: 1, from: 0.4, to: [178, 112] } },
+    prompt: '4 comes down to screen for you on the left block. Your defender ducks under the screen, toward the paint. What do you do?',
+    choices: [
+      { label: 'Pop out to the wing', correct: true, why: 'Your defender went under the screen, so the space outside it is wide open for a catch and shoot.' },
+      { label: 'Curl to the rim', why: 'Curling goes right where your defender is waiting.' },
+      { label: 'Stay on the block', why: 'You never use the screen, and your defender just waits for you.' },
+      { label: 'Screen for 4', why: 'The screen is for you. Use it.' },
+    ],
+    rule: 'Defender goes under the screen → pop out.',
+  },
+  {
+    id: 'floppy-side', title: 'Pick a side', play: 'preset-floppy', you: 'o2', freeze: [2, 0.02],
+    // X2 cheats toward 4's side, on the left.
+    defense: { d2: { beat: 1, from: 0.2, to: [205, 108] } },
+    prompt: 'You start under the rim with a screener on each block. Your defender is leaning toward the left side. Which way do you go?',
+    choices: [
+      { label: 'Come off 5 to the right wing', correct: true, why: 'Your defender is cheating left, so the right side is free and 5 is already set there.' },
+      { label: 'Come off 4 to the left wing', why: 'That runs straight into the side your defender is guarding.' },
+      { label: 'Stay under the rim', why: 'Standing still wastes both screens.' },
+      { label: 'Pop to the top of the key', why: 'Too far from either screen, and your defender can follow easily.' },
+    ],
+    rule: 'Defender cheats one side → come off the other screen.',
+  },
+  {
+    id: 'iso-left', title: 'One on one', play: 'preset-iso', you: 'o1', freeze: [1, 0.04],
+    // X1 shades your right hand.
+    defense: { d1: { beat: 0, from: 0.4, to: [272, 292] } },
+    prompt: 'Your teammates cleared out so you can go one on one from the top. Your defender is shading your right hand. What do you do?',
+    choices: [
+      { label: 'Attack left to the rim', correct: true, why: 'Your defender is sitting on your right, so the left side is the open lane.' },
+      { label: 'Drive right into him', why: 'That’s the side he’s already guarding.' },
+      { label: 'Pull up from deep', why: 'You have a clear lane to the rim; a long jumper wastes the clear-out.' },
+      { label: 'Pass to the corner', why: 'The whole floor was cleared for you to attack.' },
+    ],
+    rule: 'Defender shades one hand → attack the other way.',
+  },
+  {
+    id: 'ucla-cut', title: 'Pass, then cut', play: 'preset-ucla', you: 'o1', freeze: [1, 0.04],
+    prompt: 'You just passed to 2 on the right wing. 5 is standing at the high post, right next to your defender. What do you do?',
+    choices: [
+      { label: 'Cut off 5 straight to the rim', correct: true, why: '5 is a screen. Cutting tight past him leaves your defender behind, and 2 can throw it to you at the rim.' },
+      { label: 'Stand and watch 2', why: 'Standing still wastes the screen and gives 2 nobody to pass to.' },
+      { label: 'Cut away from 5', why: 'Going the other way means nobody gets in your defender’s way.' },
+      { label: 'Ask for it back', why: 'Running toward 2 brings your defender with you.' },
+    ],
+    rule: 'Pass to the wing → cut off the high post screen.',
+  },
+  {
+    id: 'elevator-gap', title: 'Elevator doors', play: 'preset-elevator', you: 'o2', freeze: [1, 0.12],
+    prompt: 'You’re under the rim. 4 and 5 are at the elbows with a gap between them, and your defender is chasing you. Where do you run?',
+    choices: [
+      { label: 'Sprint up through the gap', correct: true, why: '4 and 5 close the gap right behind you, and your defender runs into the doors.' },
+      { label: 'Run around the outside', why: 'Going around gives your defender a clean path to follow you.' },
+      { label: 'Post up under the rim', why: 'The play is built to get you a shot up top.' },
+      { label: 'Stay under the rim', why: 'You never use the screens.' },
+    ],
+    rule: 'Two screeners with a gap → sprint through before it closes.',
+  },
+  {
+    id: 'spain-pop', title: 'After the back screen', play: 'preset-spain', you: 'o2', freeze: [3, 0.05],
+    // X2 leaves you to help on 5's roll.
+    defense: { d2: { beat: 2, from: 0.55, to: [258, 160] } },
+    prompt: '1 is driving off 5’s screen and you just back-screened 5’s defender. Your own defender leaves you to help on 5. What do you do?',
+    choices: [
+      { label: 'Pop out to the top for three', correct: true, why: 'Your defender left to help on the roll, so you’re wide open at the top.' },
+      { label: 'Roll to the rim with 5', why: 'Two players rolling crowds the paint and your defender is already there.' },
+      { label: 'Stay in the screen', why: 'The screen is done. Now you need to get open.' },
+      { label: 'Go to the corner', why: '2 is already spaced there; the top is the open spot.' },
+    ],
+    rule: 'Your defender helps after your screen → pop.',
+  },
 ];
