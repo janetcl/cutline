@@ -187,7 +187,7 @@ export const QUIZ = [
   {
     id: 'iso-left', title: 'One on one', play: 'preset-iso', you: 'o1', freeze: [1, 0.04],
     // X1 shades your right hand.
-    defense: { d1: { beat: 0, from: 0.4, to: [272, 292] } },
+    defense: { d1: { beat: 0, from: 0.4, to: [290, 286] } },
     prompt: 'Your teammates cleared out so you can go one on one from the top. Your defender is shading your right hand. What do you do?',
     choices: [
       { label: 'Attack left to the rim', correct: true, why: 'Your defender is sitting on your right, so the left side is the open lane.' },
