@@ -2,8 +2,8 @@
 // and picking/dragging. Positions come in as court units (see model.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
-import { Player } from './players.js?v=20261115u';
-import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115u';
+import { Player } from './players.js?v=20261116a';
+import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261116a';
 
 const F = 0.03048;
 export const W = (u, v, y = 0) => new THREE.Vector3((u - 250) * F, y, (v - 235) * F);
