@@ -892,16 +892,24 @@ export class CourtScene {
     sky.geometry.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
     g.add(sky);
     // Sun low on the horizon, with layered glow (additive, so it blooms over the sky).
-    const add = (geo, color, opacity, pos, scale = [1, 1, 1]) => {
-      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
-      m.position.set(...pos); m.scale.set(...scale); g.add(m); return m;
-    };
     const SX = -30, SY = 6.5, SZ = -255;
-    const sun = new THREE.Mesh(new THREE.CircleGeometry(9, 64), new THREE.MeshBasicMaterial({ color: '#FFF1C8', fog: false }));
+    // Soft radial glows (a gradient texture, so there are no hard disc edges in the sky), drawn
+    // over the sun disc so it stays the brightest thing in the frame.
+    const glowTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const x = c.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,.55)'); gr.addColorStop(0.6, 'rgba(255,255,255,.14)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+    })();
+    const sun = new THREE.Mesh(new THREE.CircleGeometry(8, 64), new THREE.MeshBasicMaterial({ color: '#FFF4D6', fog: false, toneMapped: false }));
     sun.position.set(SX, SY, SZ); g.add(sun);
-    add(new THREE.CircleGeometry(15, 64), '#FFC870', 0.5, [SX, SY, SZ - 1]);
-    add(new THREE.CircleGeometry(32, 64), '#FF9A55', 0.24, [SX, SY, SZ - 2]);
-    add(new THREE.CircleGeometry(110, 64), '#FF7A50', 0.14, [SX, SY - 4, SZ - 3], [1.6, 0.7, 1]);
+    const glow = (r, color, opacity, sx = 1, sy = 1, dy = 0) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(r * 2, r * 2), new THREE.MeshBasicMaterial({ map: glowTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+      m.position.set(SX, SY + dy, SZ + 2); m.scale.set(sx, sy, 1); g.add(m); return m;
+    };
+    glow(22, '#FFD890', 0.55);
+    glow(55, '#FF9A55', 0.32);
+    glow(150, '#FF7A50', 0.2, 1.7, 0.55, -4);
     // Streaky clouds, lit from below
     const cloudTex = (() => {
       const c = document.createElement('canvas'); c.width = 256; c.height = 64;
@@ -916,7 +924,7 @@ export class CourtScene {
     })();
     for (const [x, y, w, h, o] of [[-90, 30, 130, 7, 0.75], [10, 38, 160, 6, 0.6], [-20, 22, 90, 4, 0.8], [70, 27, 120, 5, 0.65], [-140, 44, 150, 8, 0.5], [120, 48, 180, 9, 0.45], [-50, 15, 70, 3, 0.85], [40, 17, 60, 2.5, 0.8]]) {
       const cl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: cloudTex, transparent: true, opacity: o, depthWrite: false, fog: false }));
-      cl.position.set(x, y, -240); g.add(cl);
+      cl.position.set(x * 0.85, y * 0.85, -200); g.add(cl);
     }
     // Ocean
     const oc = document.createElement('canvas'); oc.width = 512; oc.height = 512;

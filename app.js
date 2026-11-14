@@ -1563,6 +1563,10 @@ addEventListener('resize', () => { if (tourAt >= 0) showTour(); });
 window.__court = {
   get play() { return play; }, ui, scene, setPlaying, selectBeat, loadInto, PRESETS, enterWatch, exitWatch, showQueueItem, enterQuiz, startQuiz, answerQuiz, quizCam,
   step(dt) { ui.manual = true; ui.fixedDt = dt; frame(performance.now()); },
+  look(fn) { lookChange(fn); },
+  // Screen position (CSS px) of a court spot, for scripted demos.
+  toScreen(u, v, y = 0) { const p = W(u, v, y).project(scene.camera); const r = scene.renderer.domElement.getBoundingClientRect(); return [r.left + (p.x + 1) / 2 * r.width, r.top + (1 - p.y) / 2 * r.height]; },
+  playerScreen(id) { const x = scene.people.get(id); if (!x) return null; const p = x.root.position.clone(); p.y += 1.0; p.project(scene.camera); const r = scene.renderer.domElement.getBoundingClientRect(); return [r.left + (p.x + 1) / 2 * r.width, r.top + (1 - p.y) / 2 * r.height]; },
 };
 
 // ---------- Boot ----------
