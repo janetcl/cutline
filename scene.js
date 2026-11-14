@@ -1280,6 +1280,7 @@ export class CourtScene {
       const tag = document.createElement('span');
       tag.className = 'tag ' + p.side;
       tag.dataset.pos = p.side === 'O' ? p.pos : '';
+      tag.dataset.id = p.id;
       tag.textContent = p.side === 'O' ? p.num : 'X' + p.num;
       this.labels.appendChild(tag);
       x.tag = tag;
