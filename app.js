@@ -1574,7 +1574,7 @@ window.__court = {
 async function boot() {
   performance.mark('court:scene');
   const ts = new URLSearchParams(location.search).get('tags');
-  if (ts) document.body.dataset.tags = ts;
+  document.body.dataset.tags = ts || 'broadcast';   // same slim name chips as the reels
   hydrateIcons();
   let p = null;
   const m = location.hash.match(/#p=([\w-]+)/);

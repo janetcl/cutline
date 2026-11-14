@@ -399,10 +399,10 @@ body[data-tags="plate"] .tag.O { border-left-color: var(--o); }
 body[data-tags="plate"] .tag.D { border-left-color: var(--d); opacity: .85; }
 body[data-tags="plate"] .tag.O[data-pos]:not([data-pos=""])::after { content: ' · ' attr(data-pos); font-weight: 500; color: #CFC8BD; }
 /* Broadcast (Reels): small slanted chips; only the players in the read are lit up (.key). */
-body[data-tags="broadcast"] .tag { border: 0; border-radius: 1px; padding: 1px 4px 0; font: 700 9px/1.3 "Barlow Condensed", var(--font); letter-spacing: .03em; background: rgba(11,18,32,.78) !important; color: #fff !important; box-shadow: inset 0 -2px 0 var(--edge, #fff); transform: skewX(-8deg); }
+body[data-tags="broadcast"] .tag { border: 0; border-radius: 1px; padding: 1px 4px 0; font: 700 clamp(9px, 0.45vw + 7px, 13px)/1.3 "Barlow Condensed", var(--font); letter-spacing: .03em; background: rgba(11,18,32,.78) !important; color: #fff !important; box-shadow: inset 0 -2px 0 var(--edge, #fff); transform: skewX(-8deg); }
 body[data-tags="broadcast"] .tag.O { --edge: var(--o); }
 body[data-tags="broadcast"] .tag.D { --edge: var(--d); opacity: .6; }
-body[data-tags="broadcast"] .tag.key { opacity: 1; font-size: 10.5px; padding: 1px 5px 0; background: #FFFFFF !important; color: #0B1220 !important; box-shadow: inset 0 -2.5px 0 var(--edge, #0B1220); }
+body[data-tags="broadcast"] .tag.key { opacity: 1; font-size: clamp(10.5px, 0.5vw + 8.5px, 15px); padding: 1px 5px 0; background: #FFFFFF !important; color: #0B1220 !important; box-shadow: inset 0 -2.5px 0 var(--edge, #0B1220); }
 body[data-tags="broadcast"].tags-key-only .tag:not(.key) { opacity: 0; }
 body[data-tags="floor"] .tag { transform-origin: 50% 100%; border-radius: 50%; min-width: 30px; height: 18px; padding: 0 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 0 0 2px rgba(255,255,255,.8); border: 0; }
 
