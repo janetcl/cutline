@@ -2,8 +2,8 @@
 // and picking/dragging. Positions come in as court units (see model.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
-import { Player } from './players.js?v=20261116a';
-import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261116a';
+import { Player } from './players.js?v=20261116b';
+import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261116b';
 
 const F = 0.03048;
 export const W = (u, v, y = 0) => new THREE.Vector3((u - 250) * F, y, (v - 235) * F);
@@ -501,11 +501,19 @@ export class CourtScene {
     const bases = ['#8C4A36', '#A35D44', '#C9B79A', '#7B6A5C', '#B07A55', '#9AA0A6', '#6E4637'];
     const towerMat = new THREE.MeshStandardMaterial({ color: '#7A5A3E', roughness: 0.9 });
     const roofMat = new THREE.MeshStandardMaterial({ color: '#4A3F36', roughness: 0.9 });
-    const building = (x, z, w, d, h) => {
-      const t = winTex(bases[Math.floor(rnd() * bases.length)]);
+    // haze: farther rows fade toward the sky so the skyline has depth instead of one flat wall.
+    const building = (x, z, w, d, h, haze = 0) => {
+      const base = new THREE.Color(bases[Math.floor(rnd() * bases.length)]).lerp(new THREE.Color('#C3D2E0'), haze);
+      const t = winTex('#' + base.getHexString());
       t.repeat.set(Math.max(1, w / 6), Math.max(1, h / 12));
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }));
+      const mat = new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 });
+      if (haze) { mat.color = new THREE.Color(1, 1, 1).lerp(new THREE.Color('#D8E2EC'), haze * 0.6); }
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
       m.position.set(x, h / 2, z); g.add(m);
+      // A cornice along the roofline.
+      const cor = new THREE.Mesh(new THREE.BoxGeometry(w + 0.5, 0.6, d + 0.5), new THREE.MeshStandardMaterial({ color: base.clone().multiplyScalar(0.72), roughness: 0.9 }));
+      cor.position.set(x, h + 0.3, z); g.add(cor);
+      if (haze) return;
       if (rnd() < 0.45) {
         const tank = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 2.2, 14), towerMat);
         tank.position.set(x + (rnd() - 0.5) * w * 0.5, h + 2.6, z); g.add(tank);
@@ -517,9 +525,10 @@ export class CourtScene {
         }
       }
     };
-    for (let x = -70; x < 70; x += 9 + rnd() * 6) building(x, -42 - rnd() * 12, 8 + rnd() * 6, 10, 14 + rnd() * 30);
-    for (let z = -36; z < 30; z += 10 + rnd() * 6) { building(-46 - rnd() * 8, z, 10, 9 + rnd() * 5, 12 + rnd() * 24); building(46 + rnd() * 8, z, 10, 9 + rnd() * 5, 12 + rnd() * 24); }
-    for (let x = -50; x < 50; x += 12 + rnd() * 8) building(x, -75 - rnd() * 15, 10 + rnd() * 6, 12, 40 + rnd() * 50);
+    // Walk-ups and mid-rises across the street, towers hazy in the distance, open sky between.
+    for (let x = -70; x < 70; x += 9 + rnd() * 6) building(x, -42 - rnd() * 12, 8 + rnd() * 6, 10, 9 + rnd() * 15);
+    for (let z = -36; z < 30; z += 10 + rnd() * 6) { building(-46 - rnd() * 8, z, 10, 9 + rnd() * 5, 9 + rnd() * 16); building(46 + rnd() * 8, z, 10, 9 + rnd() * 5, 9 + rnd() * 16); }
+    for (let x = -60; x < 60; x += 9 + rnd() * 10) building(x, -95 - rnd() * 20, 7 + rnd() * 7, 10, 30 + rnd() * 45, 0.5);
     this.scene.add(g);
   }
 
@@ -853,13 +862,26 @@ export class CourtScene {
       }
     }
     // Banners and a scoreboard on the far wall
-    const bannerMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.7, side: THREE.DoubleSide });
-    for (const x of [-12, -7.5, 7.5, 12]) {
-      const b = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.6), bannerMat);
-      b.position.set(x, 6.2, ZB + 0.05); g.add(b);
-      const tri = new THREE.Mesh(new THREE.CircleGeometry(0.7, 3), bannerMat);
-      tri.rotation.z = -Math.PI / 2; tri.position.set(x, 4.55, ZB + 0.05); tri.scale.set(1, 1.4, 1); g.add(tri);
-    }
+    // Championship banners: a felt swallowtail with a trim stripe and the year, like a real gym wall.
+    const banner = (title, year) => {
+      const c = document.createElement('canvas'); c.width = 160; c.height = 300;
+      const x = c.getContext('2d');
+      const col = '#' + new THREE.Color(accent).getHexString();
+      x.beginPath(); x.moveTo(8, 0); x.lineTo(152, 0); x.lineTo(152, 290); x.lineTo(80, 240); x.lineTo(8, 290); x.closePath();
+      x.fillStyle = col; x.fill();
+      x.strokeStyle = '#F4EFE6'; x.lineWidth = 7; x.beginPath(); x.moveTo(22, 14); x.lineTo(138, 14); x.lineTo(138, 262); x.lineTo(80, 222); x.lineTo(22, 262); x.closePath(); x.stroke();
+      x.fillStyle = '#F4EFE6'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.font = '800 22px Geist, Arial Black, sans-serif'; x.fillText(title, 80, 62);
+      x.fillRect(42, 88, 76, 4);
+      x.font = '800 50px Geist, Arial Black, sans-serif'; x.fillText(year, 80, 140);
+      x.font = '700 15px Geist, Arial, sans-serif'; x.fillText('CHAMPIONS', 80, 186);
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+      return new THREE.MeshStandardMaterial({ map: t, transparent: true, alphaTest: 0.5, roughness: 0.9, side: THREE.DoubleSide });
+    };
+    [[-12, 'CITY', "'09"], [-8.6, 'LEAGUE', "'14"], [8.6, 'STATE', "'19"], [12, 'CITY', "'24"]].forEach(([x, t, y], i) => {
+      const b = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.8), banner(t, y));
+      b.position.set(x, 5.9 + (i % 2) * 0.12, ZB + 0.05); g.add(b);
+    });
     const sc = document.createElement('canvas'); sc.width = 256; sc.height = 96;
     const sx = sc.getContext('2d');
     sx.fillStyle = '#121316'; sx.fillRect(0, 0, 256, 96);
