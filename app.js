@@ -42,9 +42,9 @@ function changed({ save = ui.mode === 'edit' } = {}) {
   if (ui.sel && !play.players.some((p) => p.id === ui.sel)) ui.sel = null;
   renderAll();
   if (save && ui.mode === 'edit') {
-    $('saved').textContent = 'Saving…';
+    $('saved').textContent = 'Saving…'; $('saved').classList.add('busy');
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => { $('saved').textContent = savePlay(play) ? 'Saved' : 'Not saved'; }, 350);
+    saveTimer = setTimeout(() => { const ok = savePlay(play); $('saved').textContent = ok ? 'Saved' : 'Not saved'; $('saved').classList.toggle('busy', !ok); }, 350);
   }
 }
 function undo() { if (!hist.undo.length) return; hist.redo.push(snapshot()); play = validate(JSON.parse(hist.undo.pop())); changed(); }
@@ -219,9 +219,11 @@ function teamControls() {
   const c = play.court || {};
   const sw = (side, id, t) => `<button class="team-sw" data-team="${side}" data-v="${id}" aria-pressed="${tm.ids[side] === id}" title="${esc(t.name)}" aria-label="${side === 'O' ? 'Offense' : 'Defense'}: ${esc(t.name)}"><span style="background:${t.jersey};color:${t.num}">${t.city ? esc(t.city.split(' ').map((w) => w[0]).join('').slice(0, 2)) : ''}</span></button>`;
   const row = (side) => `<div class="team-row">${Object.entries(TEAMS).map(([id, t]) => sw(side, id, t)).join('')}</div>`;
+  // the current team as one chip; the full swatch grid opens under Change
+  const pick = (side, label) => { const t = TEAMS[tm.ids[side]] || tm[side]; return `<details class="team-pick"><summary><span class="sw-now" style="background:${t.jersey};color:${t.num}">${t.city ? esc(t.city.split(' ').map((w) => w[0]).join('').slice(0, 2)) : ''}</span><span class="grow">${label}: <b>${esc(tm[side].name)}</b></span><span class="chg">Change</span></summary>${row(side)}</details>`; };
   return `<div class="court-ctl">
-    <div class="row"><span class="sub grow">Offense: <b>${esc(tm.O.name)}</b></span></div>${row('O')}
-    <div class="row"><span class="sub grow">Defense: <b>${esc(tm.D.name)}</b></span></div>${row('D')}
+    ${pick('O', 'Offense')}
+    ${pick('D', 'Defense')}
     <div class="opts"><button class="opt" data-act="swap-teams">⇄ Swap offense and defense</button></div>
     <span class="sub">Home court</span><div class="opts">${opt(esc(tm.O.name), 'data-act="home" data-v="O"', c.home === 'O')}${opt(esc(tm.D.name), 'data-act="home" data-v="D"', c.home === 'D')}${opt('Neutral', 'data-act="home" data-v=""', !c.home)}</div>
     <p class="help">The home team's colors and city go on the court.</p>
@@ -312,7 +314,7 @@ function renderTimeline() {
   $('time-total').textContent = fmt(total);
   const cur = beatAt(play, ui.T).i;
   const onIdx = ui.playing ? cur : ui.beat;
-  $('blocks').innerHTML = play.beats.map((b, k) => `<button class="block${onIdx === k ? ' on' : ''}" data-beat="${k}" style="flex:${b.dur} 1 0"><b>${k + 1} · ${esc(b.name)}</b><span>${esc(beatSummary(k))}</span></button>`).join('');
+  $('blocks').innerHTML = play.beats.map((b, k) => `<button class="block${onIdx === k ? ' on' : ''}" data-beat="${k}" style="flex:${b.dur} 1 0"><b><span class="bn">${k + 1} · </span>${esc(b.name)}</b><span>${esc(beatSummary(k))}</span></button>`).join('');
   const ticks = [];
   for (let s = 0; s <= Math.floor(total); s++) ticks.push(`<span style="left:${(s / total) * 100}%">${s}s</span>`);
   $('ruler').innerHTML = ticks.join('');
