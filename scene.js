@@ -2,8 +2,8 @@
 // and picking/dragging. Positions come in as court units (see model.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
-import { Player } from './players.js?v=20261115b';
-import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115b';
+import { Player } from './players.js?v=20261115c';
+import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115c';
 
 const F = 0.03048;
 export const W = (u, v, y = 0) => new THREE.Vector3((u - 250) * F, y, (v - 235) * F);
@@ -454,10 +454,11 @@ export class CourtScene {
     const tex = (w, h, draw, rep) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
       const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; if (rep) t.repeat.set(rep[0], rep[1]); return t; };
     // merge many small geometries into one mesh (vertex colors carry the variation)
-    const merge = (parts) => {
+    const merge = (parts, lit = false) => {
       const pos = [], nor = [], col = [];
-      for (const [geo, color, m] of parts) { const gg = geo.index ? geo.toNonIndexed() : geo.clone(); gg.applyMatrix4(m); gg.computeVertexNormals();
-        const pa = gg.attributes.position, na = gg.attributes.normal; for (let i = 0; i < pa.count; i++) { pos.push(pa.getX(i), pa.getY(i), pa.getZ(i)); nor.push(na.getX(i), na.getY(i), na.getZ(i)); col.push(color.r, color.g, color.b); } }
+      for (const [geo, color, m] of parts) { const gg = geo.clone(); gg.applyMatrix4(m); gg.computeVertexNormals();
+        const pa = gg.attributes.position, na = gg.attributes.normal, ix = gg.index;
+        const n = ix ? ix.count : pa.count; for (let k = 0; k < n; k++) { const i = ix ? ix.getX(k) : k; pos.push(pa.getX(i), pa.getY(i), pa.getZ(i)); nor.push(na.getX(i), na.getY(i), na.getZ(i)); const sh = lit ? 0.72 + 0.4 * Math.max(0, na.getY(i)) : 1; col.push(color.r * sh, color.g * sh, color.b * sh); } }
       const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return out; };
     const M = (x, y, z, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
 
@@ -515,18 +516,21 @@ export class CourtScene {
 
     // London plane trees: a mottled trunk that forks, and a canopy of clustered leaf clumps.
     const trunkMat = STD({ map: tex(64, 128, (x) => { x.fillStyle = '#A59A7E'; x.fillRect(0, 0, 64, 128); for (let i = 0; i < 70; i++) { x.fillStyle = ['#7C7259', '#C9C1A4', '#8F8A6C', '#B7AF8E'][i % 4]; x.beginPath(); x.ellipse(rnd() * 64, rnd() * 128, 4 + rnd() * 8, 3 + rnd() * 6, rnd() * 3, 0, Math.PI * 2); x.fill(); } }), roughness: 0.9 });
-    const leafMat = STD({ vertexColors: true, roughness: 0.85, flatShading: true });
+    const leafMat = STD({ vertexColors: true, roughness: 0.95 });
     const greens = ['#4C7A37', '#5A8A3E', '#3F6A31', '#6B9A48', '#56803A'].map((c) => new THREE.Color(c));
-    const clump = (() => { const geo = new THREE.IcosahedronGeometry(1, 1), pa = geo.attributes.position; for (let i = 0; i < pa.count; i++) { const k = 0.82 + rnd() * 0.36; pa.setXYZ(i, pa.getX(i) * k, pa.getY(i) * k * 0.85, pa.getZ(i) * k); } return geo; })();
+    const clump = (() => { const geo = new THREE.SphereGeometry(1, 16, 12), pa = geo.attributes.position; for (let i = 0; i < pa.count; i++) { const k = 0.94 + Math.sin(pa.getX(i) * 5.1) * Math.cos(pa.getZ(i) * 4.3) * 0.06; pa.setXYZ(i, pa.getX(i) * k, pa.getY(i) * k * 0.82, pa.getZ(i) * k); } return geo; })();
     const tree = (x, z, s) => {
       const parts = [], ry = rnd() * Math.PI * 2;
       const trunk = new THREE.CylinderGeometry(0.17, 0.26, 3.2, 9); trunk.applyMatrix4(M(x, 1.6 * s, z, s, s, s));
       const tr = new THREE.Mesh(trunk, trunkMat); tr.castShadow = true; g.add(tr);
       for (let b = 0; b < 3; b++) { const a = ry + (b / 3) * Math.PI * 2, br = new THREE.CylinderGeometry(0.07, 0.13, 2.2, 7); br.applyMatrix4(M(x + Math.cos(a) * 0.55 * s, 3.9 * s, z + Math.sin(a) * 0.55 * s, s, s, s, Math.sin(a) * 0.55, 0, -Math.cos(a) * 0.55)); const bm = new THREE.Mesh(br, trunkMat); bm.castShadow = true; g.add(bm); }
-      const n = 11 + Math.floor(rnd() * 5);
-      for (let k = 0; k < n; k++) { const a = rnd() * Math.PI * 2, r = rnd() * 2.0, y = 4.3 + rnd() * 2.4 - r * 0.25, sc = (1.0 + rnd() * 0.7) * s;
-        parts.push([clump, greens[Math.floor(rnd() * greens.length)].clone().multiplyScalar(0.9 + (y - 4.3) * 0.06), M(x + Math.cos(a) * r * s, y * s, z + Math.sin(a) * r * s, sc * 1.15, sc, sc * 1.15, 0, rnd() * 3, 0)]); }
-      const can = new THREE.Mesh(merge(parts), leafMat); can.castShadow = true; g.add(can);
+      // a big rounded crown: one clump on top and a ring of overlapping ones round it
+      const base = greens[Math.floor(rnd() * greens.length)];
+      parts.push([clump, base, M(x, 6.0 * s, z, 2.3 * s, 2.0 * s, 2.3 * s)]);
+      const n = 6 + Math.floor(rnd() * 2);
+      for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + rnd() * 0.4, r = 1.7 + rnd() * 0.4, y = 5.0 + rnd() * 0.8, sc = (1.35 + rnd() * 0.35) * s;
+        parts.push([clump, base.clone().lerp(greens[k % greens.length], 0.35), M(x + Math.cos(a) * r * s, y * s, z + Math.sin(a) * r * s, sc * 1.1, sc * 0.9, sc * 1.1, 0, rnd() * 3, 0)]); }
+      const can = new THREE.Mesh(merge(parts, true), leafMat); can.castShadow = true; g.add(can);
     };
     const treeSpots = [[-14, -14], [-6, -16.5], [5, -15.5], [14, -13], [-15, -3], [-15.5, 6], [15, -2], [15.5, 7], [-18, 16], [18, 15], [-8, 19], [8, 20], [-24, -24], [24, -23], [-25, 24], [25, 25], [-26, 9], [26, -9], [0, -29], [-12, 29], [12, 30]];
     for (const [x, z] of treeSpots) tree(x, z, 0.9 + rnd() * 0.35);
