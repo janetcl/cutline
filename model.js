@@ -48,7 +48,7 @@ export function courtLook(play) {
     label: c.label || (home && home.city) || '',
     // No choice yet = the gym, so every view (eye level too) has something behind the court.
     scene: ['studio', 'arena', 'park', 'garden', 'beach', 'gym', 'pier'].includes(c.scene) ? c.scene : 'gym',
-    gymTeam: { paint: (home && home.paint) || (c.paint !== undefined && c.paint ? c.paint : th.paint) },
+    gymTeam: { paint: (home && home.paint) || (c.paint !== undefined && c.paint ? c.paint : th.paint), jersey: home ? home.jersey : null, home: !!home },
   };
 }
 

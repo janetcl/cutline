@@ -2,8 +2,8 @@
 // and picking/dragging. Positions come in as court units (see model.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
-import { Player } from './players.js?v=20261115c';
-import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115c';
+import { Player } from './players.js?v=20261115d';
+import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115d';
 
 const F = 0.03048;
 export const W = (u, v, y = 0) => new THREE.Vector3((u - 250) * F, y, (v - 235) * F);
@@ -424,10 +424,11 @@ export class CourtScene {
 
   // What's around the court: nothing (studio / arena) or a New York City park.
   setSurroundings(type, team) {
-    const key = type + (type === 'gym' && team ? team.paint : '');
+    const key = type + ((type === 'gym' || type === 'arena') && team ? team.paint + (team.jersey || '') : '');
     if (this.surroundType === key) return;
     this.surroundType = key;
     if (this.surround) { this.scene.remove(this.surround); this.surround.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); this.surround = null; }
+    this.anim = []; this.boards = []; this.scored = 0;
     this.netMat.color.set(type === 'park' ? '#A9AEB3' : '#F6F3EC');
     this.netMat.metalness = type === 'park' ? 0.85 : 0;
     this.netMat.roughness = type === 'park' ? 0.35 : 0.95;
@@ -437,7 +438,7 @@ export class CourtScene {
     if (type === 'garden') { this.buildGarden(rnd); return; }
     if (type === 'beach') { this.buildBeach(rnd); return; }
     if (type === 'gym') { this.buildGym(rnd, team); return; }
-    if (type === 'arena') { this.buildGarden(rnd, true); return; }
+    if (type === 'arena') { this.buildGarden(rnd, true, team); return; }
     if (type === 'studio') { this.buildStudio(); return; }
     if (type === 'pier') { this.buildPier(rnd); return; }
     if (type !== 'park') return;
@@ -734,6 +735,7 @@ export class CourtScene {
     const wt = new THREE.CanvasTexture(wc); wt.colorSpace = THREE.SRGBColorSpace; wt.wrapS = wt.wrapT = THREE.RepeatWrapping; wt.repeat.set(30, 30);
     const water = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), new THREE.MeshStandardMaterial({ color: '#4474A8', map: wt, roughness: 0.26, metalness: 0.7, envMap: env, envMapIntensity: 0.85 }));
     water.rotation.x = -Math.PI / 2; water.position.y = -1.4; g.add(water);
+    this.anim.push((d) => { wt.offset.x += d * 0.006; wt.offset.y += d * 0.0035; });
     // Glitter path from the sun across the river toward the pier.
     { const c = document.createElement('canvas'); c.width = 128; c.height = 512; const x = c.getContext('2d');
       for (let i = 0; i < 1600; i++) { const yy = Math.random() * 512, spread = 18 + (yy / 512) * 46, xx = 64 + (Math.random() - 0.5) * 2 * spread * Math.random();
@@ -741,7 +743,17 @@ export class CourtScene {
       const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
       const len = 330, gl = new THREE.Mesh(new THREE.PlaneGeometry(70, len), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.85 }));
       gl.rotation.x = -Math.PI / 2; gl.rotation.z = -Math.atan2(sunDir.x, -sunDir.z);
-      const mid = 45 + len / 2; gl.position.set(sunDir.x / Math.hypot(sunDir.x, sunDir.z) * mid, -1.35, sunDir.z / Math.hypot(sunDir.x, sunDir.z) * mid); g.add(gl); }
+      const mid = 45 + len / 2; gl.position.set(sunDir.x / Math.hypot(sunDir.x, sunDir.z) * mid, -1.35, sunDir.z / Math.hypot(sunDir.x, sunDir.z) * mid); g.add(gl);
+      t.wrapT = THREE.RepeatWrapping; this.anim.push((d, T) => { t.offset.y = (t.offset.y + d * 0.03) % 1; gl.material.opacity = 0.78 + Math.sin(T * 2.3) * 0.06 + Math.sin(T * 5.1) * 0.04; }); }
+    // Boats on the river: a ferry crossing and two sailboats, bobbing as they go.
+    { const boats = [];
+      const hullM = new THREE.MeshStandardMaterial({ color: '#F3F1EC', roughness: 0.5 }), blue = new THREE.MeshStandardMaterial({ color: '#2F5D9C', roughness: 0.5 }), sailM = new THREE.MeshStandardMaterial({ color: '#FFF8EE', side: THREE.DoubleSide, roughness: 0.8 });
+      const ferry = new THREE.Group(); const fh = new THREE.Mesh(new THREE.BoxGeometry(22, 2.4, 6), hullM); fh.position.y = 0.6; const fs = new THREE.Mesh(new THREE.BoxGeometry(22.1, 0.6, 6.1), blue); fs.position.y = 0.2;
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(14, 2.2, 5), hullM); cabin.position.set(-1, 2.9, 0); const win = new THREE.Mesh(new THREE.BoxGeometry(14.05, 0.8, 5.05), new THREE.MeshStandardMaterial({ color: '#23344A', metalness: 0.6, roughness: 0.2, envMap: env })); win.position.set(-1, 3.1, 0);
+      ferry.add(fh, fs, cabin, win); g.add(ferry); boats.push({ o: ferry, x: -260, z: -150, v: 6, w: 0.5, ph: 0 });
+      for (const [x, z, v, sc] of [[-60, -95, 2.2, 1.2], [140, -210, -1.6, 1.6]]) { const b = new THREE.Group(); const h = new THREE.Mesh(new THREE.BoxGeometry(6 * sc, 0.9 * sc, 2 * sc), hullM); h.position.y = 0.3;
+        const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0, 8 * sc); sh.lineTo(3.8 * sc, 0); const sail = new THREE.Mesh(new THREE.ShapeGeometry(sh), sailM); sail.position.set(-1.6 * sc, 0.8, 0); b.add(h, sail); g.add(b); boats.push({ o: b, x, z, v, w: 1.1, ph: x }); }
+      this.anim.push((d, T) => { for (const k of boats) { k.x += k.v * d; if (k.x > 320) k.x = -320; if (k.x < -320) k.x = 320; k.o.position.set(k.x, -1.35 + Math.sin(T * k.w + k.ph) * 0.12, k.z); k.o.rotation.set(Math.sin(T * k.w * 0.9 + k.ph) * 0.03, k.v < 0 ? Math.PI : 0, Math.sin(T * k.w * 1.3 + k.ph) * 0.04); } }); }
     // Brooklyn behind the camera and to the right: trees and low brick buildings on land.
     const land = new THREE.Mesh(new THREE.PlaneGeometry(600, 400), new THREE.MeshStandardMaterial({ color: '#6C7F52', roughness: 1 }));
     land.rotation.x = -Math.PI / 2; land.position.set(250, -0.4, 180); g.add(land);
@@ -968,27 +980,36 @@ export class CourtScene {
       const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
       return new THREE.MeshStandardMaterial({ map: t, transparent: true, alphaTest: 0.5, roughness: 0.9, side: THREE.DoubleSide });
     };
+    // Everything hung on the far wall fades out when the camera sits behind the basket (Baseline view),
+    // so it never blocks the court.
+    const hangG = new THREE.Group(); g.add(hangG);
     // Banners hang from a rod on two wires from the ceiling, a hand's width off the wall.
     const rodMat = new THREE.MeshStandardMaterial({ color: '#3A3A3C', metalness: 0.7, roughness: 0.4 });
     [[-12, 'CITY', "'09"], [-8.6, 'LEAGUE', "'14"], [8.6, 'STATE', "'19"], [12, 'CITY', "'24"]].forEach(([x, t, y]) => {
       const top = 7.3, zz = ZB + 0.3;
       const b = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.8), banner(t, y));
-      b.position.set(x, top - 1.4, zz); g.add(b);
-      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.7, 8), rodMat); rod.rotation.z = Math.PI / 2; rod.position.set(x, top + 0.02, zz); g.add(rod);
-      for (const dx of [-0.7, 0.7]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, H - top, 4), rodMat); w.position.set(x + dx, top + (H - top) / 2, zz); g.add(w); }
+      b.position.set(x, top - 1.4, zz); hangG.add(b);
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.7, 8), rodMat); rod.rotation.z = Math.PI / 2; rod.position.set(x, top + 0.02, zz); hangG.add(rod);
+      for (const dx of [-0.7, 0.7]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, H - top, 4), rodMat); w.position.set(x + dx, top + (H - top) / 2, zz); hangG.add(w); }
     });
     const sc = document.createElement('canvas'); sc.width = 256; sc.height = 96;
     const sx = sc.getContext('2d');
-    sx.fillStyle = '#121316'; sx.fillRect(0, 0, 256, 96);
-    sx.font = '800 44px Geist, Arial Black, sans-serif'; sx.textAlign = 'center'; sx.textBaseline = 'middle';
-    sx.fillStyle = '#FF5A3C'; sx.fillText('42', 60, 52); sx.fillText('38', 196, 52);
-    sx.fillStyle = '#FFD25A'; sx.font = '700 22px Geist, Arial, sans-serif'; sx.fillText('4TH', 128, 52);
+    const drawGym = (o, d) => { sx.fillStyle = '#121316'; sx.fillRect(0, 0, 256, 96);
+      sx.font = '800 44px Geist, Arial Black, sans-serif'; sx.textAlign = 'center'; sx.textBaseline = 'middle';
+      sx.fillStyle = '#FF5A3C'; sx.fillText(String(o), 60, 52); sx.fillText(String(d), 196, 52);
+      sx.fillStyle = '#FFD25A'; sx.font = '700 22px Geist, Arial, sans-serif'; sx.fillText('4TH', 128, 52); };
+    drawGym(42, 38);
     const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
+    this.boards.push({ base: [42, 38], draw: (o, d) => { drawGym(o, d); st.needsUpdate = true; } });
     // The scoreboard is a box bolted to the wall on two brackets, not a picture on it.
     const shell = new THREE.MeshStandardMaterial({ color: '#1A1B1F', metalness: 0.4, roughness: 0.5 });
-    const box = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.95, 0.32), shell); box.position.set(0, 7.15, ZB + 0.42); box.castShadow = true; g.add(box);
-    const board = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.6), new THREE.MeshBasicMaterial({ map: st })); board.position.set(0, 7.15, ZB + 0.585); g.add(board);
-    for (const dx of [-1.6, 1.6]) { const br = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.3), shell); br.position.set(dx, 7.15, ZB + 0.15); g.add(br); }
+    const box = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.95, 0.32), shell); box.position.set(0, 7.15, ZB + 0.42); box.castShadow = true; hangG.add(box);
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.6), new THREE.MeshBasicMaterial({ map: st })); board.position.set(0, 7.15, ZB + 0.585); hangG.add(board);
+    for (const dx of [-1.6, 1.6]) { const br = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.3), shell); br.position.set(dx, 7.15, ZB + 0.15); hangG.add(br); }
+    hangG.traverse((o) => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; } });
+    let hangF = 1;
+    this.anim.push((d) => { const near = this.camera.position.z < ZB + 6; const want = near ? 0.05 : 1; if (Math.abs(hangF - want) < 0.01) return;
+      hangF += (want - hangF) * Math.min(1, d * 8); hangG.traverse((o) => { if (o.material) { o.material.opacity = hangF; o.material.depthWrite = hangF > 0.9; } }); });
     // Clerestory windows high on both side walls: daylight without any extra lights.
     const winT = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d');
       const gr = x.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0, '#CFE3F3'); gr.addColorStop(1, '#F4F7F2'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
@@ -1066,6 +1087,7 @@ export class CourtScene {
     const ot = new THREE.CanvasTexture(oc); ot.colorSpace = THREE.SRGBColorSpace;
     const ocean = new THREE.Mesh(new THREE.PlaneGeometry(700, 260), new THREE.MeshStandardMaterial({ map: ot, roughness: 0.2, metalness: 0.15 }));
     ocean.rotation.x = -Math.PI / 2; ocean.position.set(0, -0.06, -156); g.add(ocean);
+    ot.wrapS = ot.wrapT = THREE.RepeatWrapping; ot.repeat.set(3, 1.2); this.anim.push((d) => { ot.offset.x += d * 0.004; ot.offset.y += d * 0.006; });
     // The sun's reflection: a shimmering path from the horizon to the shore.
     const rc = document.createElement('canvas'); rc.width = 128; rc.height = 512;
     const rx = rc.getContext('2d');
@@ -1081,13 +1103,23 @@ export class CourtScene {
     refl.position.set(SX * 0.55, -0.02, -140);
     refl.rotation.z = Math.atan2(SX * 0.45, 230);
     g.add(refl);
+    rt.wrapT = THREE.RepeatWrapping; this.anim.push((d, T) => { rt.offset.y = (rt.offset.y + d * 0.04) % 1; refl.material.opacity = 0.85 + Math.sin(T * 3.1) * 0.08; });
     // Shoreline foam and wet sand
     const foam = new THREE.Mesh(new THREE.PlaneGeometry(700, 1.2), new THREE.MeshBasicMaterial({ color: '#FFF4E6', transparent: true, opacity: 0.8 }));
     foam.rotation.x = -Math.PI / 2; foam.position.set(0, -0.03, -26.4); g.add(foam);
+    // Waves wash up and slide back: the foam line and a thin sheet of water move together.
+    const wash = new THREE.Mesh(new THREE.PlaneGeometry(700, 2.4), new THREE.MeshBasicMaterial({ color: '#BFE9E4', transparent: true, opacity: 0.45, depthWrite: false })); wash.rotation.x = -Math.PI / 2; wash.position.set(0, -0.035, -25.6); g.add(wash);
+    this.anim.push((d, T) => { const w = Math.sin(T * 0.9) * 0.5 + 0.5; foam.position.z = -26.4 + w * 1.6; wash.position.z = -25.6 + w * 1.2; foam.material.opacity = 0.55 + 0.35 * (1 - w); wash.material.opacity = 0.2 + 0.3 * w; });
     const wet = new THREE.Mesh(new THREE.PlaneGeometry(700, 3), new THREE.MeshStandardMaterial({ color: '#B8946A', roughness: 0.6 }));
     wet.rotation.x = -Math.PI / 2; wet.position.set(0, -0.04, -24.6); g.add(wet);
     // Sand
-    const sand = new THREE.Mesh(new THREE.PlaneGeometry(700, 200), new THREE.MeshStandardMaterial({ color: '#EBD3A8', roughness: 1 }));
+    const sandTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.fillStyle = '#E9D2A6'; x.fillRect(0, 0, 256, 256);
+      for (let i = 0; i < 9000; i++) { const v = rnd(); x.fillStyle = v < 0.33 ? 'rgba(255,248,230,.55)' : v < 0.66 ? 'rgba(176,140,96,.35)' : 'rgba(214,186,140,.5)'; x.fillRect(rnd() * 256, rnd() * 256, 1 + rnd(), 1 + rnd()); }
+      x.strokeStyle = 'rgba(170,135,90,.18)'; x.lineWidth = 2; for (let r = 0; r < 9; r++) { x.beginPath(); const y0 = r * 30 + rnd() * 8; for (let q = 0; q <= 256; q += 8) x.lineTo(q, y0 + Math.sin(q / 26 + r) * 5); x.stroke(); }
+      for (let i = 0; i < 40; i++) { x.fillStyle = 'rgba(150,115,75,.12)'; x.beginPath(); x.ellipse(rnd() * 256, rnd() * 256, 3 + rnd() * 4, 2 + rnd() * 2, rnd() * 3, 0, Math.PI * 2); x.fill(); }
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(90, 26); t.anisotropy = 8; return t; })();
+    const sandBump = sandTex.clone(); sandBump.colorSpace = THREE.NoColorSpace; sandBump.needsUpdate = true;
+    const sand = new THREE.Mesh(new THREE.PlaneGeometry(700, 200), new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: sandTex, bumpMap: sandBump, bumpScale: 0.6, roughness: 1 }));
     sand.rotation.x = -Math.PI / 2; sand.position.set(0, -0.05, 76.9); sand.receiveShadow = true; g.add(sand);
     // A mountain on the horizon, Diamond Head style
     const mtn = new THREE.Mesh(new THREE.ConeGeometry(48, 26, 7, 1), new THREE.MeshBasicMaterial({ color: '#7D7A8E', fog: false }));
@@ -1095,18 +1127,25 @@ export class CourtScene {
     const mtn2 = new THREE.Mesh(new THREE.ConeGeometry(30, 16, 6, 1), new THREE.MeshBasicMaterial({ color: '#8E8AA0', fog: false }));
     mtn2.position.set(-112, 3, -228); mtn2.scale.set(1.6, 0.5, 0.8); g.add(mtn2);
     // Palm trees: a ringed, curving trunk and a crown of long drooping fronds, each tree two meshes.
-    const mergeC = (parts) => { const pos = [], nor = [], col = [];
-      for (const [geo, color, m] of parts) { const gg = geo.index ? geo.toNonIndexed() : geo.clone(); gg.applyMatrix4(m); gg.computeVertexNormals(); const pa2 = gg.attributes.position, na = gg.attributes.normal;
-        for (let q = 0; q < pa2.count; q++) { pos.push(pa2.getX(q), pa2.getY(q), pa2.getZ(q)); nor.push(na.getX(q), na.getY(q), na.getZ(q)); col.push(color.r, color.g, color.b); } }
-      const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return out; };
+    const mergeC = (parts) => { const pos = [], nor = [], col = [], uvs = [];
+      for (const [geo, color, m] of parts) { const gg = geo.index ? geo.toNonIndexed() : geo.clone(); gg.applyMatrix4(m); gg.computeVertexNormals(); const pa2 = gg.attributes.position, na = gg.attributes.normal, ua = gg.attributes.uv;
+        for (let q = 0; q < pa2.count; q++) { pos.push(pa2.getX(q), pa2.getY(q), pa2.getZ(q)); nor.push(na.getX(q), na.getY(q), na.getZ(q)); col.push(color.r, color.g, color.b); if (ua) uvs.push(ua.getX(q), ua.getY(q)); else uvs.push(0.02, 0.5); } }
+      const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); if (uvs.length) out.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); return out; };
     const trunkMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
-    const frondMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, side: THREE.DoubleSide });
+    // a frond drawn as a rib with many thin leaflets, cut out with alpha so the crown looks feathery
+    const frondTex = (() => { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.clearRect(0, 0, 512, 128);
+      for (let i = 0; i < 46; i++) { const u = 12 + i * 10.6, len = 58 * Math.sin(Math.PI * Math.min(1, (u / 512) * 1.12)) * (1 - (u / 512) * 0.45) + 6;
+        for (const sgn of [-1, 1]) { const gr = x.createLinearGradient(u, 64, u + 30, 64 + sgn * len); gr.addColorStop(0, '#4F8F3E'); gr.addColorStop(1, '#8DC25C'); x.fillStyle = gr;
+          x.beginPath(); x.moveTo(u - 2, 64); x.quadraticCurveTo(u + 10, 64 + sgn * len * 0.6, u + 24, 64 + sgn * len); x.quadraticCurveTo(u + 12, 64 + sgn * len * 0.5, u + 5, 64); x.closePath(); x.fill(); } }
+      x.strokeStyle = '#6E8A3A'; x.lineWidth = 4; x.beginPath(); x.moveTo(0, 64); x.lineTo(512, 64); x.stroke();
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; })();
+    const frondMat = new THREE.MeshStandardMaterial({ map: frondTex, vertexColors: true, alphaTest: 0.45, roughness: 0.8, side: THREE.DoubleSide });
     // one frond: a long leaf that tapers and droops, with a ridge down the middle
-    const frondGeo = (() => { const geo = new THREE.PlaneGeometry(3.2, 0.9, 10, 2), fp = geo.attributes.position;
-      for (let q = 0; q < fp.count; q++) { const u = (fp.getX(q) + 1.6) / 3.2, w = fp.getY(q); const width = Math.sin(Math.PI * Math.min(1, u * 1.15)) * (1 - u * 0.55);
-        fp.setXYZ(q, u * 3.2, -u * u * 1.6 - Math.abs(w) * 0.25, w * width); }
-      geo.computeVertexNormals(); return geo; })();
-    const greensP = ['#3F7F3A', '#4E9442', '#5BA34A', '#3A7034'].map((c) => new THREE.Color(c));
+    const frondGeo = (droop) => { const geo = new THREE.PlaneGeometry(4.2, 1.6, 14, 2), fp = geo.attributes.position;
+      for (let q = 0; q < fp.count; q++) { const u = (fp.getX(q) + 2.1) / 4.2, w = fp.getY(q); fp.setXYZ(q, u * 4.2, -u * u * droop - Math.abs(w) * 0.35 * u, w * (0.25 + 0.75 * Math.min(1, u * 3))); }
+      geo.computeVertexNormals(); return geo; };
+    const frondLow = frondGeo(2.4), frondHigh = frondGeo(0.9);
+    const greensP = ['#FFFFFF', '#E6F2DA', '#D4E8C4', '#F2FAEA'].map((c) => new THREE.Color(c));
     const palm = (x, z, h, lean) => {
       const tparts = [], segs = 9; let px = 0, py = 0;
       for (let k = 0; k < segs; k++) { const t = k / segs; const nx = Math.sin((k + 1) / segs * 1.4) * lean, ny = (h / segs) * (k + 1);
@@ -1117,14 +1156,17 @@ export class CourtScene {
         tparts.push([new THREE.TorusGeometry(0.19 - t * 0.04, 0.025, 4, 10), new THREE.Color('#6E5440'), new THREE.Matrix4().compose(b, q.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0))), new THREE.Vector3(1, 1, 1))]);
         px = nx; py = ny; }
       const tm = new THREE.Mesh(mergeC(tparts), trunkMat); tm.castShadow = true;
-      const fparts = [], n = 10 + Math.floor(rnd() * 3);
-      for (let k = 0; k < n; k++) { const ang = (k / n) * Math.PI * 2 + rnd() * 0.25, up = -0.35 + rnd() * 0.6, sc = 0.85 + rnd() * 0.35;
+      const fparts = [];
+      // two tiers: long drooping fronds round the outside, shorter ones reaching up from the middle
+      for (const [geo, n, tilt, sz] of [[frondLow, 12, 0.15, 1.0], [frondHigh, 7, 0.75, 0.75]]) for (let k = 0; k < n; k++) { const ang = (k / n) * Math.PI * 2 + rnd() * 0.35 + (tilt > 0.5 ? 0.25 : 0), up = tilt + (rnd() - 0.5) * 0.3, sc = sz * (0.85 + rnd() * 0.3);
         const m = new THREE.Matrix4().compose(new THREE.Vector3(px, py, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -ang, up, 'YXZ')), new THREE.Vector3(sc, sc, sc));
-        fparts.push([frondGeo, greensP[k % greensP.length], m]); }
+        fparts.push([geo, greensP[k % greensP.length], m]); }
       for (let k = 0; k < 4; k++) fparts.push([new THREE.SphereGeometry(0.2, 8, 6), new THREE.Color('#6B5233'), new THREE.Matrix4().makeTranslation(px + Math.cos(k * 1.6) * 0.22, py - 0.25, Math.sin(k * 1.6) * 0.22)]);
       const fm = new THREE.Mesh(mergeC(fparts), frondMat); fm.castShadow = true;
       const tree = new THREE.Group(); tree.add(tm, fm); tree.position.set(x, 0, z); tree.rotation.y = rnd() * Math.PI * 2; g.add(tree);
     };
+    const palmBase = palm;
+    const palmGroup = (x, z, h, lean) => { palmBase(x, z, h, lean); if (rnd() < 0.6) palmBase(x + 1.6 + rnd(), z + (rnd() - 0.5) * 2, h * (0.65 + rnd() * 0.2), lean * -0.8); };
     for (const [x, z, h, l] of [[-13, -12, 7.5, 1.6], [-16, -4, 8.5, 2.2], [14, -13, 8, -1.8], [17, 0, 7, -1.2], [-22, 8, 9, 2.4], [22, 9, 8.5, -2], [-30, -18, 10, 1.4], [32, -20, 9.5, -1.6]]) palm(x, z, h, l);
     // The land side, behind the half-court line: a lifeguard tower, umbrellas, more palms,
     // green hills and hotels, so the beach wraps all the way around.
@@ -1143,7 +1185,7 @@ export class CourtScene {
       u.position.set(x, 0, z); u.traverse((o) => { o.castShadow = true; }); g.add(u);
     };
     for (const [x, z, c] of [[-14, 14, '#E0552E'], [-18, 22, '#2B8A9E'], [-9, 26, '#F2B705'], [8, 28, '#D9507A'], [20, 12, '#2B8A9E'], [-22, 6, '#F2B705']]) umbrella(x, z, c);
-    for (const [x, z, h, l] of [[-6, 34, 8, 1.2], [5, 36, 9, -1.4], [-26, 30, 10, 2], [26, 32, 9.5, -2.2], [0, 46, 11, 1.1]]) palm(x, z, h, l);
+    for (const [x, z, h, l] of [[-6, 34, 8, 1.2], [5, 36, 9, -1.4], [-26, 30, 10, 2], [26, 32, 9.5, -2.2], [0, 46, 11, 1.1]]) palmGroup(x, z, h, l);
     const hillMat = new THREE.MeshStandardMaterial({ color: '#5E9150', roughness: 1, flatShading: true });
     for (const [x, z, r, h] of [[-60, 140, 40, 28], [10, 160, 55, 38], [80, 150, 45, 30], [-120, 170, 50, 34], [140, 175, 50, 26]]) {
       const hill = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8, 1), hillMat); hill.position.set(x, h / 2 - 2, z); hill.scale.z = 0.7; g.add(hill);
@@ -1156,7 +1198,7 @@ export class CourtScene {
     }
     const postMat0 = new THREE.MeshStandardMaterial({ color: '#8C6A48', roughness: 0.9 });
     // More palms, so the beach is full the whole way round.
-    for (let k = 0; k < 22; k++) { const a = (k / 22) * Math.PI * 2 + rnd() * 0.2, r = 40 + rnd() * 25, x = Math.cos(a) * r, z = Math.sin(a) * r * 0.9; if (z < -22) continue; palm(x, z, 8 + rnd() * 4, (rnd() - 0.5) * 4); }
+    for (let k = 0; k < 22; k++) { const a = (k / 22) * Math.PI * 2 + rnd() * 0.2, r = 40 + rnd() * 25, x = Math.cos(a) * r, z = Math.sin(a) * r * 0.9; if (z < -22) continue; palmGroup(x, z, 8 + rnd() * 4, (rnd() - 0.5) * 4); }
     // Loungers under the umbrellas, surfboards in the sand, a volleyball net.
     const lounger = (x, z, ry, color) => { const l = new THREE.Group(); const frame = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 1.9), white); frame.position.y = 0.35; const pad = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.06, 1.3), new THREE.MeshStandardMaterial({ color, roughness: 0.8 })); pad.position.set(0, 0.42, 0.25);
       const back = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.06, 0.7), new THREE.MeshStandardMaterial({ color, roughness: 0.8 })); back.position.set(0, 0.62, -0.62); back.rotation.x = -0.7; l.add(frame, pad, back); l.position.set(x, 0, z); l.rotation.y = ry; g.add(l); };
@@ -1168,8 +1210,10 @@ export class CourtScene {
       const net = new THREE.Mesh(new THREE.PlaneGeometry(8, 0.9), new THREE.MeshStandardMaterial({ color: '#F2EEE6', transparent: true, opacity: 0.55, side: THREE.DoubleSide })); net.position.set(-21, 2, 30); g.add(net); }
     // Sailboats and an outrigger canoe out on the water.
     const sailM = new THREE.MeshBasicMaterial({ color: '#FFF7EC', side: THREE.DoubleSide, fog: false });
-    for (const [x, z, s2] of [[60, -110, 1], [-95, -160, 1.4], [25, -190, 1.2], [130, -150, 0.9]]) { const hull = new THREE.Mesh(new THREE.BoxGeometry(5 * s2, 0.8 * s2, 1.6 * s2), new THREE.MeshStandardMaterial({ color: '#F2EEE6' })); hull.position.set(x, 0.3, z); g.add(hull);
-      const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0, 7 * s2); sh.lineTo(3.4 * s2, 0); const sail = new THREE.Mesh(new THREE.ShapeGeometry(sh), sailM); sail.position.set(x - 1.2 * s2, 0.7, z); g.add(sail); }
+    const sails = [];
+    for (const [x, z, s2, v] of [[60, -110, 1, 1.4], [-95, -160, 1.4, -0.9], [25, -190, 1.2, 0.7], [130, -150, 0.9, -1.2], [-40, -130, 1.1, 1.0]]) { const b = new THREE.Group(); const hull = new THREE.Mesh(new THREE.BoxGeometry(5 * s2, 0.8 * s2, 1.6 * s2), new THREE.MeshStandardMaterial({ color: '#F2EEE6' })); hull.position.y = 0.3;
+      const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0, 7 * s2); sh.lineTo(3.4 * s2, 0); const sail = new THREE.Mesh(new THREE.ShapeGeometry(sh), sailM); sail.position.set(-1.2 * s2, 0.7, 0); b.add(hull, sail); g.add(b); sails.push({ o: b, x, z, v, ph: x * 0.1 }); }
+    this.anim.push((d, T) => { for (const k of sails) { k.x += k.v * d; if (k.x > 220) k.x = -220; if (k.x < -220) k.x = 220; k.o.position.set(k.x, Math.sin(T * 1.2 + k.ph) * 0.15, k.z); k.o.rotation.set(Math.sin(T * 1.1 + k.ph) * 0.05, k.v < 0 ? Math.PI : 0, Math.sin(T * 0.8 + k.ph) * 0.06); } });
     { const canoe = new THREE.Group(); const hull = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 6, 4, 10), new THREE.MeshStandardMaterial({ color: '#B3462E', roughness: 0.6 })); hull.rotation.z = Math.PI / 2; hull.scale.set(1, 1, 0.8); hull.position.y = 0.3;
       const ama = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 3.5, 4, 8), white); ama.rotation.z = Math.PI / 2; ama.position.set(0, 0.2, 1.8); for (const dx of [-1, 1]) { const iako = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.9, 5), postMat0); iako.rotation.x = Math.PI / 2; iako.position.set(dx, 0.5, 0.9); canoe.add(iako); }
       canoe.add(hull, ama); canoe.position.set(-24, 0, -18); canoe.rotation.y = 0.5; canoe.traverse((o) => { o.castShadow = true; }); g.add(canoe); }
@@ -1183,7 +1227,10 @@ export class CourtScene {
 
   // A big New York arena in the style of the Garden: a two-tier bowl of fans, the round
   // spoked ceiling, and a center-hung scoreboard over center court. No names or logos.
-  buildGarden(rnd, plain = false) {
+  buildGarden(rnd, plain = false, team = null) {
+    // The dark arena takes the court's paint (the home team's colors when there is one), so the bowl matches the floor.
+    const tc = plain && team && team.paint ? new THREE.Color(team.paint) : null;
+    const hex = (c, k) => '#' + c.clone().multiplyScalar(k).getHexString();
     const g = (this.surround = new THREE.Group());
     const cz = W(250, 470).z; // center court
     const crowdTex = () => {
@@ -1208,7 +1255,7 @@ export class CourtScene {
     };
     // Seating bowls: stepped lathe profiles, stretched into an oval around the full court.
     void crowdTex;
-    const seatColor = plain ? '#5A1F26' : '#1F2C52';
+    const seatColor = tc ? hex(tc, 0.5) : plain ? '#2A2D33' : '#1F2C52';
     const seatMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(seatColor).multiplyScalar(0.8), roughness: 0.85, side: THREE.DoubleSide });
     const bowls = [];
     const bowl = (r0, y0, rows, rise, run) => {
@@ -1235,7 +1282,7 @@ export class CourtScene {
       // Courtside: two rows along the far sideline, photographers kneeling under the basket.
       for (const xr of [9.4, 10.3]) for (let z = cz - 13; z <= cz + 13; z += 0.7) if (Math.abs(z - cz) > 1.2) spots.push([xr, xr > 10 ? 0.25 : 0, z, 1]);
       for (const x of [-5.6, -4.6, -3.6, 3.6, 4.6, 5.6]) spots.push([x, -0.4, W(250, -40).z, 0.72]);
-      const shirts = plain ? ['#B3262E', '#1A1A1E', '#E8E4DC', '#7A1C22', '#2B2B30', '#C9C2B6', '#3B3B42', '#55555C'] : ['#0B5CAD', '#F58426', '#E8E4DC', '#1A1A1E', '#0B3F7A', '#C9C2B6', '#2B2B30', '#4A5568', '#0B5CAD', '#6B6258'];
+      const shirts = tc ? ['#' + tc.getHexString(), '#' + tc.getHexString(), team.jersey || '#E8E4DC', '#1A1A1E', '#E8E4DC', '#2B2B30', '#C9C2B6', '#55555C'] : plain ? ['#1A1A1E', '#E8E4DC', '#2B2B30', '#C9C2B6', '#3B3B42', '#55555C', '#8A8F98', '#E0552E'] : ['#0B5CAD', '#F58426', '#E8E4DC', '#1A1A1E', '#0B3F7A', '#C9C2B6', '#2B2B30', '#4A5568', '#0B5CAD', '#6B6258'];
       const skins = ['#E3BC97', '#C68E62', '#8D5A3B', '#5A3A2A', '#D2A27A'];
       const bodyGeo = new THREE.BoxGeometry(0.44, 0.62, 0.32), headGeo = new THREE.BoxGeometry(0.22, 0.25, 0.22);
       const bodies = new THREE.InstancedMesh(bodyGeo, new THREE.MeshStandardMaterial({ color: '#9A9AA0', roughness: 0.9 }), spots.length);
@@ -1259,7 +1306,7 @@ export class CourtScene {
       x.fillStyle = 'rgba(0,0,0,.25)'; for (let i = 0; i < 2048; i += 4) x.fillRect(i, 0, 1, 64);
       const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.set(5, 1); return t;
     };
-    const ribT = ribbonTex(plain ? '#7A0F18' : '#0B4C99', plain ? '#FFB74A' : '#F58426');
+    const ribT = ribbonTex(tc ? hex(tc, 0.42) : plain ? '#17191E' : '#0B4C99', tc ? (team.jersey && team.jersey.toUpperCase() !== '#1D1A17' ? team.jersey : '#FFFFFF') : plain ? '#E9E6DF' : '#F58426');
     // Rings are seen from inside, so their text runs the other way round; flat boards read normally.
     ribT.repeat.set(-5, 1);
     const rib = new THREE.MeshBasicMaterial({ map: ribT, side: THREE.DoubleSide, fog: false });
@@ -1287,7 +1334,7 @@ export class CourtScene {
     { const dark = new THREE.MeshStandardMaterial({ color: '#16171C', roughness: 0.6 });
       const table = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.8, 9), dark); table.position.set(-9.4, 0.4, cz); g.add(table);
       const front = new THREE.Mesh(new THREE.PlaneGeometry(9, 0.7), ribFlat); front.position.set(-8.89, 0.42, cz); front.rotation.y = Math.PI / 2; g.add(front);
-      const chair = new THREE.BoxGeometry(0.5, 0.9, 0.5), chairM = new THREE.MeshStandardMaterial({ color: plain ? '#7A0F18' : '#0B4C99', roughness: 0.7 });
+      const chair = new THREE.BoxGeometry(0.5, 0.9, 0.5), chairM = new THREE.MeshStandardMaterial({ color: tc ? hex(tc, 0.8) : plain ? '#23262C' : '#0B4C99', roughness: 0.7 });
       for (let z = cz - 13; z <= cz + 13; z += 0.75) { if (Math.abs(z - cz) < 5.2) continue; const c = new THREE.Mesh(chair, chairM); c.position.set(-9.6, 0.45, z); g.add(c); } }
     // The round ceiling: concentric rings and radial spokes.
     const cc = document.createElement('canvas'); cc.width = cc.height = 1024;
@@ -1311,13 +1358,15 @@ export class CourtScene {
     // Center-hung scoreboard
     const sc = document.createElement('canvas'); sc.width = 512; sc.height = 256;
     const sx = sc.getContext('2d');
-    sx.fillStyle = '#05070B'; sx.fillRect(0, 0, 512, 256);
-    sx.fillStyle = plain ? '#E0552E' : '#F58426'; sx.fillRect(0, 0, 512, 10); sx.fillRect(0, 246, 512, 10);
-    sx.font = '800 96px Geist, Arial Black, sans-serif'; sx.textAlign = 'center'; sx.textBaseline = 'middle';
-    sx.fillStyle = '#FFFFFF'; sx.fillText('HOME', 128, 62); sx.fillText('AWAY', 384, 62);
-    sx.fillStyle = '#FFD25A'; sx.font = '800 104px Geist, Arial Black, sans-serif'; sx.fillText('88', 128, 158); sx.fillText('86', 384, 158);
-    sx.fillStyle = '#FFFFFF'; sx.font = '700 34px Geist, Arial, sans-serif'; sx.fillText('Q4  2:41', 256, 226);
+    const drawBig = (o, d) => { sx.fillStyle = '#05070B'; sx.fillRect(0, 0, 512, 256);
+      sx.fillStyle = plain ? '#E0552E' : '#F58426'; sx.fillRect(0, 0, 512, 10); sx.fillRect(0, 246, 512, 10);
+      sx.font = '800 96px Geist, Arial Black, sans-serif'; sx.textAlign = 'center'; sx.textBaseline = 'middle';
+      sx.fillStyle = '#FFFFFF'; sx.fillText('HOME', 128, 62); sx.fillText('AWAY', 384, 62);
+      sx.fillStyle = '#FFD25A'; sx.font = '800 104px Geist, Arial Black, sans-serif'; sx.fillText(String(o), 128, 158); sx.fillText(String(d), 384, 158);
+      sx.fillStyle = '#FFFFFF'; sx.font = '700 34px Geist, Arial, sans-serif'; sx.fillText('Q4  2:41', 256, 226); };
+    drawBig(88, 86);
     const stx = new THREE.CanvasTexture(sc); stx.colorSpace = THREE.SRGBColorSpace;
+    this.boards.push({ base: [88, 86], draw: (o, d) => { drawBig(o, d); stx.needsUpdate = true; } });
     const screen = new THREE.MeshBasicMaterial({ map: stx, fog: false });
     const shell = new THREE.MeshStandardMaterial({ color: '#111216', metalness: 0.6, roughness: 0.4 });
     const board = new THREE.Mesh(new THREE.BoxGeometry(10, 5.4, 7), [screen, screen, shell, shell, screen, screen]);
@@ -1341,6 +1390,14 @@ export class CourtScene {
     const b = this.ball.position;
     const inNet = Math.hypot(b.x - RIM.x, b.z - RIM.z) < 0.2 && b.y < RIM_Y && b.y > RIM_Y - 0.5;
     if (inNet) this.netKick = 1;
+    // Scoreboards: a make adds 2, or 3 when the ball left the shooter's hands beyond the arc.
+    if (b.y < 2.4 && Math.hypot(b.x - RIM.x, b.z - RIM.z) > 0.6) this.lastLow = [b.x, b.z];
+    if (inNet && !this.wasInNet && this.boards && this.boards.length) {
+      const L = this.lastLow, far = L ? Math.hypot(L[0] - RIM.x, L[1] - RIM.z) : 0;
+      this.scored += far > 6.6 ? 3 : 2;
+      for (const bd of this.boards) bd.draw(bd.base[0] + this.scored, bd.base[1]);
+    }
+    this.wasInNet = inNet;
     this.netKick = Math.max(0, this.netKick - dt * 1.6);
     this.netTime = (this.netTime || 0) + dt;
     const w = this.netKick;
@@ -1511,6 +1568,9 @@ export class CourtScene {
   update(f, opts) {
     const { dt, now, snap, selected, showDefense } = opts;
     if (this.parkCars && this.surroundType === 'park' && dt) this.tickPark(Math.min(dt, 0.1));
+    if (this.anim && dt) { const d = Math.min(dt, 0.1); this.animT = (this.animT || 0) + d; for (const fn of this.anim) fn(d, this.animT); }
+    // the play starting over puts the scoreboards back too
+    if (typeof f.i === 'number') { const pos = f.i + (f.t || 0); if (this.lastPos !== undefined && pos < this.lastPos - 0.5 && this.scored) { this.scored = 0; for (const bd of this.boards || []) bd.draw(bd.base[0], bd.base[1]); } this.lastPos = pos; }
     const people = this.people;
     const P = (id) => people.get(id);
     for (const [id, x] of people) {
