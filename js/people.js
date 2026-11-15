@@ -243,6 +243,20 @@ export class Person {
       lean = 0.95 * sc;
     }
 
+    // Basketball poses (Cutline): passing, catching, holding, shooting and defense, on top of the walk.
+    const P = m.pose;
+    if (P) {
+      const k = Math.max(0, Math.min(1, P.k ?? 1));
+      const lerp = (u, v) => u + (v - u) * k;
+      if (P.kind === 'hold') { arm = [-0.95, -0.95]; armSide = [0.38, -0.38]; }
+      else if (P.kind === 'windup') { arm = [-0.85, -0.85]; armSide = [0.42, -0.42]; lean += 0.04; }
+      else if (P.kind === 'pass') { arm = [lerp(-0.9, -1.55), lerp(-0.9, -1.55)]; armSide = [lerp(0.4, 0.12), lerp(-0.4, -0.12)]; lean += 0.12 * k; }
+      else if (P.kind === 'catch') { arm = [-1.4, -1.4]; armSide = [0.16, -0.16]; lean += 0.06; }
+      else if (P.kind === 'shoot') { arm = [lerp(-0.95, -2.55), lerp(-0.95, -2.95)]; armSide = [lerp(0.38, 0.32), lerp(-0.38, -0.12)]; knee = [knee[0] + 0.35 * (1 - k), knee[1] + 0.35 * (1 - k)]; lean -= 0.04 * k; }
+      else if (P.kind === 'guard') { arm = [-2.55, -0.75]; armSide = [-0.25, 0.7]; knee = [knee[0] + 0.25, knee[1] + 0.25]; hip = [hip[0] - 0.12, hip[1] - 0.12]; lean += 0.12; }
+      else if (P.kind === 'contest') { arm = [-3.0, -3.0]; armSide = [0.05, -0.05]; lean -= 0.05; }
+      else if (P.kind === 'deny') { arm = [-0.45, -0.45]; armSide = [-0.65, 0.65]; knee = [knee[0] + 0.15, knee[1] + 0.15]; lean += 0.08; }
+    }
     // Dribbling (Cutline): the ball hand pumps with the bounce, out to the side, with a low, athletic stance.
     if (m.dribble !== undefined) {
       arm[1] = -0.12 - 0.45 * m.dribble;

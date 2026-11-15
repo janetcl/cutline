@@ -2,8 +2,8 @@
 // and picking/dragging. Positions come in as court units (see model.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
-import { Player } from './players.js?v=20261115e';
-import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115e';
+import { Player } from './players.js?v=20261115f';
+import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115f';
 
 const F = 0.03048;
 export const W = (u, v, y = 0) => new THREE.Vector3((u - 250) * F, y, (v - 235) * F);
@@ -1607,8 +1607,9 @@ export class CourtScene {
     }
     // Ball
     const ballOut = this.ball.position;
-    const hand = (x, out, side = 1) => {
+    const hand = (x, out, side = 0) => {
       const h = x.heading, s = x.look.height || 1;
+      if (!side) return out.set(x.pos.x + Math.sin(h) * 0.34, 1.12 * s, x.pos.z + Math.cos(h) * 0.34);   // both hands, at the chest
       return out.set(x.pos.x + Math.cos(h) * 0.24 * side + Math.sin(h) * 0.2, 1.05 * s, x.pos.z - Math.sin(h) * 0.24 * side + Math.cos(h) * 0.2);
     };
     const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
@@ -1647,6 +1648,24 @@ export class CourtScene {
 
     const ballFlat = new THREE.Vector3(ballOut.x, 0, ballOut.z);
     const dribbling = f.dribble && f.holder && !(ev && f.t >= ev.t0), bounce = Math.abs(Math.cos(now * Math.PI * 2.4));
+    // who is doing what with their arms this frame
+    const poses = new Map();
+    if (f.holder) {
+      if (ev && ev.kind === 'pass' && ev.to) {
+        const span = Math.max(0.01, ev.t1 - ev.t0);
+        if (f.t < ev.t0 - 0.12) poses.set(f.holder, { kind: dribbling ? null : 'hold' });
+        else if (f.t < ev.t0) poses.set(f.holder, { kind: 'windup' });
+        else if (f.t < ev.t1 + 0.08) poses.set(f.holder, { kind: 'pass', k: (f.t - ev.t0) / Math.min(0.12, span) });
+        if (f.t >= ev.t0 + span * 0.35 && f.t < ev.t1 + 0.12) poses.set(ev.to, { kind: 'catch' });
+        else if (f.t >= ev.t1 + 0.12) poses.set(ev.to, { kind: 'hold' });
+      } else if (ev && ev.kind === 'shot') {
+        const g0 = ev.t0 - 0.18;
+        if (f.t >= g0) poses.set(f.holder, { kind: 'shoot', k: (f.t - g0) / 0.2 });
+        else if (!dribbling) poses.set(f.holder, { kind: 'hold' });
+      } else if (!dribbling) poses.set(f.holder, { kind: 'hold' });
+    }
+    const shotUp = ev && ev.kind === 'shot' && f.t >= ev.t0 - 0.2 && f.t < ev.t1;
+    for (const [id, x] of people) if (x.side === 'D' && x.root.visible) poses.set(id, { kind: x.guard === f.holder ? (shotUp ? 'contest' : 'guard') : 'deny' });
     for (const [id, x] of people) {
       if (!x.root.visible) continue;
       const v = x.first ? 0 : x.pos.distanceTo(x.prev) / Math.max(dt, 1e-4);
@@ -1658,7 +1677,7 @@ export class CourtScene {
       // Whoever has the ball faces the basket; facing the ball in their own hand made them spin.
       if (!moving && (id === f.holder || id === shooter || x.pos.distanceTo(ballFlat) < 0.6)) dir = Math.atan2(RIM.x - x.pos.x, RIM.z - x.pos.z);
       x.root.position.set(x.pos.x, id === shooter ? jump : 0, x.pos.z);
-      x.tick(dt, moving ? v : 0, dir, now, { moving, style: v > 3.2 ? 'run' : x.side === 'D' ? 'chasse' : 'walk', dribble: dribbling && id === f.holder ? bounce : undefined }, snap || x.first);
+      x.tick(dt, moving ? v : 0, dir, now, { moving, style: v > 3.2 ? 'run' : x.side === 'D' ? 'chasse' : 'walk', dribble: dribbling && id === f.holder ? bounce : undefined, pose: poses.get(id) && poses.get(id).kind ? poses.get(id) : undefined }, snap || x.first);
       x.first = false;
     }
     this.controls.update();
