@@ -1,16 +1,16 @@
 // Cutline editor: beats on the left, the 3D court in the middle, the inspector on
 // the right and the beat timeline at the bottom.
-import { CourtScene, W } from './scene.js?v=20261115d';
-import { QUIZ } from './quiz.js?v=20261115d';
+import { CourtScene, W } from './scene.js?v=20261115e';
+import { QUIZ } from './quiz.js?v=20261115e';
 import * as THREE from 'three';
-import { PRESETS } from './plays.js?v=20261115d';
+import { PRESETS } from './plays.js?v=20261115e';
 import {
   THEMES, TEAMS, MATCHUPS, teamsOf, SKINS, HAIRS, STYLES, POSITIONS, PACES, ZONES, FLOORS, PAINTS, LINE_COLORS, BORDERS, courtLook, uid, clampUV, newPlay, validate, flipPlay,
   posAt, moveOf, holderAt, actionOf, timing, beatAt, sample, marksFor, thumbSVG,
   libraryIds, loadPlay, savePlay, deletePlay, lastId, savedAt, encodeShare, decodeShare,
-} from './model.js?v=20261115d';
-import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261115d';
-import { icon, hydrateIcons } from './js/icons.js?v=20261115d';
+} from './model.js?v=20261115e';
+import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261115e';
+import { icon, hydrateIcons } from './js/icons.js?v=20261115e';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

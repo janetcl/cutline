@@ -2,8 +2,8 @@
 // and picking/dragging. Positions come in as court units (see model.js).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
-import { Player } from './players.js?v=20261115d';
-import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115d';
+import { Player } from './players.js?v=20261115e';
+import { THEMES, TEAMS, FLOORS, RIM as RIM_UV } from './model.js?v=20261115e';
 
 const F = 0.03048;
 export const W = (u, v, y = 0) => new THREE.Vector3((u - 250) * F, y, (v - 235) * F);
@@ -1646,6 +1646,7 @@ export class CourtScene {
     this.animateNet(dt);
 
     const ballFlat = new THREE.Vector3(ballOut.x, 0, ballOut.z);
+    const dribbling = f.dribble && f.holder && !(ev && f.t >= ev.t0), bounce = Math.abs(Math.cos(now * Math.PI * 2.4));
     for (const [id, x] of people) {
       if (!x.root.visible) continue;
       const v = x.first ? 0 : x.pos.distanceTo(x.prev) / Math.max(dt, 1e-4);
@@ -1657,7 +1658,7 @@ export class CourtScene {
       // Whoever has the ball faces the basket; facing the ball in their own hand made them spin.
       if (!moving && (id === f.holder || id === shooter || x.pos.distanceTo(ballFlat) < 0.6)) dir = Math.atan2(RIM.x - x.pos.x, RIM.z - x.pos.z);
       x.root.position.set(x.pos.x, id === shooter ? jump : 0, x.pos.z);
-      x.tick(dt, moving ? v : 0, dir, now, { moving, style: v > 3.2 ? 'run' : x.side === 'D' ? 'chasse' : 'walk' }, snap || x.first);
+      x.tick(dt, moving ? v : 0, dir, now, { moving, style: v > 3.2 ? 'run' : x.side === 'D' ? 'chasse' : 'walk', dribble: dribbling && id === f.holder ? bounce : undefined }, snap || x.first);
       x.first = false;
     }
     this.controls.update();

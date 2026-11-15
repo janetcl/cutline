@@ -243,6 +243,14 @@ export class Person {
       lean = 0.95 * sc;
     }
 
+    // Dribbling (Cutline): the ball hand pumps with the bounce, out to the side, with a low, athletic stance.
+    if (m.dribble !== undefined) {
+      arm[1] = -0.12 - 0.45 * m.dribble;
+      armSide[1] = 0.28;
+      lean += 0.14;
+      knee = [knee[0] + 0.18, knee[1] + 0.18];
+      hip = [hip[0] - 0.08, hip[1] - 0.08];
+    }
     const blend = Math.min(1, dt * 14);
     const mix = (o, k, v) => { o[k] += (v - o[k]) * blend; };
     for (let i = 0; i < 2; i++) {
