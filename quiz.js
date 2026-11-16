@@ -233,16 +233,16 @@ export const QUIZ = [
     rule: 'Your defender helps after your screen → pop.',
   },
   {
-    id: 'slip', title: 'Screener, read the trap', play: 'preset-slip', you: 'o5', freeze: [1, 0.9],
-    // Both defenders jump out on 1 before your screen lands.
-    defense: { d5: { beat: 0, from: 0.55, to: [282, 318] }, d1: { beat: 0, from: 0.75, to: [236, 342] } },
-    prompt: 'You run up to set a ball screen for 1. Before you get there, your defender and 1’s defender both jump out to trap 1. What do you do?',
+    id: 'slip', title: 'Screener, read your defender', play: 'preset-slip', you: 'o5', freeze: [1, 0.9],
+    // X5 cheats up level with you, waiting to hedge on 1.
+    defense: { d5: { beat: 0, from: 0.5, to: [318, 298] } },
+    prompt: 'You run up to set a ball screen for 1. Your defender steps up level with you, ready to jump out at 1 the moment they come off it. What do you do?',
     choices: [
-      { label: 'Set the screen anyway', why: 'Both defenders are already on 1. Your screen hits nobody and the trap stays on.' },
-      { label: 'Slip to the rim', correct: true, why: 'Two defenders on the ball means nobody is guarding the rim. Slip before contact and it’s a layup.' },
-      { label: 'Pop out to the wing', why: 'You’d be open, but far from the basket. The rim is wide open right now.' },
+      { label: 'Set the screen anyway', why: 'That’s exactly what your defender is waiting for. 1 comes off the screen straight into the hedge.' },
+      { label: 'Slip to the rim', correct: true, why: 'Your defender is up level with you, leaning toward 1. Nobody is behind you, so slip before contact and it’s a layup.' },
+      { label: 'Pop out to the wing', why: 'You’d be open, but your defender is right there to recover. The rim behind them is wide open.' },
       { label: 'Go to the corner', why: '3 is already there, and it takes you away from the free layup.' },
     ],
-    rule: 'Both defenders jump the ball → slip to the rim.',
+    rule: 'Your defender cheats up to hedge → slip to the rim.',
   },
 ];
