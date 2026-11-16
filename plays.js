@@ -176,6 +176,18 @@ export const PRESETS = [
     ],
   }),
   def({
+    id: 'slip', level: 'Intermediate', name: 'Slip screen', cat: 'Pick and roll',
+    blurb: '5 comes up to screen, both defenders jump the ball, so 5 slips to the rim before contact.',
+    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    beats: [
+      ['Set', 1.2, '1 at the top of the key. Shooters in both corners, 4 on the left wing, 5 at the right elbow.', { dr: true }],
+      ['Fake screen', 1.4, '5 runs up as if to screen for 1. Both defenders jump out to trap the ball.', { m: { 5: [[305, 250], [290, 292]] }, dr: true }],
+      ['Slip', 1.4, 'Before making contact, 5 slips straight to the rim. 1 backs up a step to see over the trap.', { m: { 5: [[292, 230], [262, 104]], 1: [[245, 345]] }, pc: { 5: 'explode' }, dr: true }],
+      ['Pass', 1.0, '1 throws over the trap to 5.', { b: ['pass', 5, 0.1, 0.55] }],
+      ['Finish', 1.3, '5 lays it in.', { m: { 5: [[256, 74]] }, b: ['shot', 0.3, 0.7] }],
+    ],
+  }),
+  def({
     id: 'horns', level: 'Intermediate', name: 'Horns: ball screen', cat: 'Pick and roll',
     blurb: 'Both bigs at the elbows. One screens and rolls, the other pops.',
     start: { 1: [250, 330], 2: [40, 40], 3: [460, 40], 4: [180, 190], 5: [320, 190] },
