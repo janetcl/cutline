@@ -2,7 +2,7 @@
 // Shorthand per beat: m = moves (player number → points, the last one is where they
 // end up), s = screeners, pc = pace, b = ball ['pass', to, t0, t1] or ['shot', t0, t1],
 // dr = dribble in place. looks = per-player size for matchup plays.
-import { newPlay, uid, validate } from './model.js?v=20261118c';
+import { newPlay, uid, validate } from './model.js?v=20261118d';
 
 function def({ id, name, cat, blurb, start, ball = 1, beats, size = 5, defense = 'man', zone, level, looks }) {
   const p = newPlay({ name, size, defense });
@@ -405,7 +405,7 @@ export const PRESETS = [
   }),
   def({
     id: 'switch-seal', level: 'Advanced', name: 'Punish the switch', cat: 'Matchups',
-    looks: { o5: { height: 1.16 }, d1: { height: 0.86 } },
+    looks: { o5: { height: 1.26 }, d1: { height: 0.78 } },
     blurb: 'The defense switches the ball screen and leaves a little guard on 5, so 5 seals him in the post.',
     start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
     beats: [
@@ -419,7 +419,7 @@ export const PRESETS = [
   }),
   def({
     id: 'floater-drop', level: 'Advanced', name: 'Floater over the big', cat: 'Matchups',
-    looks: { o1: { height: 0.9 }, d5: { height: 1.2 } },
+    looks: { o1: { height: 0.84 }, d5: { height: 1.34 } },
     blurb: 'Their giant center drops back to the rim, so 1 floats it over him from the lane.',
     start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
     beats: [
