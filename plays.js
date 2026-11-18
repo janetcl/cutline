@@ -2,7 +2,7 @@
 // Shorthand per beat: m = moves (player number → points, the last one is where they
 // end up), s = screeners, pc = pace, b = ball ['pass', to, t0, t1] or ['shot', t0, t1],
 // dr = dribble in place. looks = per-player size for matchup plays.
-import { newPlay, uid, validate } from './model.js?v=20261118b';
+import { newPlay, uid, validate } from './model.js?v=20261118c';
 
 function def({ id, name, cat, blurb, start, ball = 1, beats, size = 5, defense = 'man', zone, level, looks }) {
   const p = newPlay({ name, size, defense });
@@ -449,6 +449,28 @@ export const PRESETS = [
       ['Swing', 1.0, '1 swings it to 2 on the right wing. Now 4 is two passes away.', { b: ['pass', 2, 0.1, 0.6] }],
       ['Drive', 1.5, '2 drives middle and runs straight into X4, waiting in the lane.', { m: { 2: [[370, 180], [318, 152]] } }],
       ['Kick out', 1.0, '2 has to pick it up and kick it back to 1.', { b: ['pass', 1, 0.1, 0.6] }],
+    ],
+  }),
+  def({
+    id: 'tag-roll', level: 'Advanced', name: 'Tag the roller', cat: 'Defense',
+    blurb: 'Defense: on a pick and roll, the weak-side defender steps into the lane to stop the roll.',
+    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    beats: [
+      ['Set', 1.2, '1 at the top, 5 at the right elbow. X4 guards 4 on the left wing.', { dr: true }],
+      ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side. X5 jumps out to stop the ball.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
+      ['Roll', 1.6, '1 comes off the screen. 5 rolls hard to the rim, and X4 steps into the lane in front of him.', { m: { 1: [[320, 300], [372, 258]], 5: [[300, 200], [272, 130]] }, pc: { 5: 'explode' } }],
+      ['No lane', 1.2, 'The lob to 5 isn\'t there. 1 swings it to 3 in the corner, and X4 gets back to 4.', { b: ['pass', 3, 0.15, 0.7] }],
+    ],
+  }),
+  def({
+    id: 'under-screen', level: 'Advanced', name: 'Over or under?', cat: 'Defense',
+    blurb: 'Defense: the ball handler can\'t shoot, so X1 goes under the screen and meets him on the other side.',
+    start: { 1: [250, 335], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    beats: [
+      ['Set', 1.2, '1 has it up top. 1 is quick but not a shooter.', { dr: true }],
+      ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 255], [284, 305]] }, s: [5], dr: true }],
+      ['Under', 1.4, 'X1 slips under the screen and beats 1 to the other side. No lane.', { m: { 1: [[318, 318], [352, 292]] }, dr: true }],
+      ['Reset', 1.2, '1 has nowhere to go and gives it up to 4.', { b: ['pass', 4, 0.15, 0.7] }],
     ],
   }),
 ];

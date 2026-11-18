@@ -361,4 +361,30 @@ export const QUIZ = [
     ],
     rule: 'Two passes away → sink into the lane and help.',
   },
+  {
+    id: 'tag-roll', title: 'Defense: the roll man', play: 'preset-tag-roll', you: 'd4', freeze: [2, 0.35],
+    // X5 is out on the ball; you step into the lane to tag 5, then recover to 4 after the swing.
+    defense: { d5: { beat: 1, from: 0.5, to: [300, 296] }, d4: { then: { to: [238, 128], at: 0, dur: 0.6 } } },
+    prompt: 'You’re guarding 4 on the left wing. 5 just set a ball screen and is rolling to the rim, and his defender is out on the ball. What do you do?',
+    choices: [
+      { label: 'Stay home on 4', why: 'Nobody stops the roll. That’s an easy lob or layup for 5.' },
+      { label: 'Step into the lane and tag 5', correct: true, why: 'You’re the closest help. Bump 5 in the lane so the pass isn’t there, then get back to 4.' },
+      { label: 'Jump out and trap 1', why: 'Two on the ball already. A third leaves 4 and 5 both open.' },
+      { label: 'Switch onto 5 for good', why: 'Then 4 is open for three. Tag him, then recover.' },
+    ],
+    rule: 'Ball screen, you’re weak side → tag the roller, then recover.',
+  },
+  {
+    id: 'under-screen', title: 'Defense: over or under?', play: 'preset-under-screen', you: 'd1', freeze: [1, 0.75],
+    // You go under the screen and meet 1 on the other side.
+    defense: { d1: { then: { to: [330, 286], at: 0, dur: 0.9 } } },
+    prompt: 'You’re guarding 1, who is quick but can’t shoot. 5 is about to screen you. How do you get through it?',
+    choices: [
+      { label: 'Fight over the top', why: 'That’s for shooters. Going over a quick guard who can’t shoot just lets him race by you.' },
+      { label: 'Switch onto 5', why: 'Now a quick guard is attacking your big man. That’s the matchup he wants.' },
+      { label: 'Go under the screen', correct: true, why: 'He can’t make you pay from deep. Going under puts you on the other side first, so there’s no lane.' },
+      { label: 'Trap him with X5', why: 'Two on the ball leaves 5 rolling to an open rim.' },
+    ],
+    rule: 'Can’t shoot? Go under. Can shoot? Go over.',
+  },
 ];
