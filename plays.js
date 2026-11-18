@@ -2,7 +2,7 @@
 // Shorthand per beat: m = moves (player number → points, the last one is where they
 // end up), s = screeners, pc = pace, b = ball ['pass', to, t0, t1] or ['shot', t0, t1],
 // dr = dribble in place. looks = per-player size for matchup plays.
-import { newPlay, uid, validate } from './model.js?v=20261118e';
+import { newPlay, uid, validate } from './model.js?v=20261118f';
 
 function def({ id, name, cat, blurb, start, ball = 1, beats, size = 5, defense = 'man', zone, level, looks }) {
   const p = newPlay({ name, size, defense });
@@ -28,7 +28,7 @@ function def({ id, name, cat, blurb, start, ball = 1, beats, size = 5, defense =
   return validate(p);
 }
 
-const FIVE_OUT = { 1: [250, 320], 2: [80, 230], 3: [420, 230], 4: [40, 40], 5: [460, 40] };
+const FIVE_OUT = { 1: [250, 320], 2: [80, 230], 3: [420, 230], 4: [18, 36], 5: [482, 36] };
 
 export const PRESETS = [
   // ---------- Easy: one idea each, a few beats ----------
@@ -46,7 +46,7 @@ export const PRESETS = [
   def({
     id: 'pick-pop', name: 'Pick and pop', cat: 'Easy',
     blurb: '4 screens for 1, then pops out for an open jumper instead of rolling.',
-    start: { 1: [250, 330], 2: [40, 40], 3: [460, 40], 4: [320, 195], 5: [170, 80] },
+    start: { 1: [250, 330], 2: [18, 36], 3: [482, 36], 4: [320, 195], 5: [170, 80] },
     beats: [
       ['Set', 1.0, '1 up top, 4 at the right elbow, 5 on the left block.', { dr: true }],
       ['Screen', 1.3, '4 comes up and screens for 1.', { m: { 4: [[285, 300]] }, s: [4], dr: true }],
@@ -62,7 +62,7 @@ export const PRESETS = [
     beats: [
       ['Pass', 1.0, '1 passes to 2 on the left wing.', { b: ['pass', 2, 0.15, 0.6] }],
       ['Cut', 1.5, '1 cuts straight to the rim looking for the ball.', { m: { 1: [[245, 190], [250, 80]] }, pc: { 1: 'explode' } }],
-      ['Fill', 1.7, '1 clears to the right corner. 5 lifts to the wing, 3 slides to the top.', { m: { 1: [[360, 55], [460, 40]], 5: [[440, 130], [420, 230]], 3: [[340, 290], [250, 320]] } }],
+      ['Fill', 1.7, '1 clears to the right corner. 5 lifts to the wing, 3 slides to the top.', { m: { 1: [[360, 55], [482, 36]], 5: [[440, 130], [420, 230]], 3: [[340, 290], [250, 320]] } }],
       ['Swing', 1.0, '2 swings it to 3 at the top.', { b: ['pass', 3, 0.1, 0.6] }],
       ['Swing again', 1.0, '3 swings it to 5 on the right wing.', { b: ['pass', 5, 0.1, 0.6] }],
       ['Shot', 1.3, '5 shoots from the wing.', { b: ['shot', 0.15, 0.7] }],
@@ -95,7 +95,7 @@ export const PRESETS = [
   def({
     id: 'post-up', name: 'Post up', cat: 'Easy',
     blurb: 'Get it to the wing, feed the big on the block, back down for a hook.',
-    start: { 1: [250, 320], 2: [80, 230], 3: [420, 230], 4: [40, 40], 5: [330, 85] },
+    start: { 1: [250, 320], 2: [80, 230], 3: [420, 230], 4: [18, 36], 5: [330, 85] },
     beats: [
       ['Pass to wing', 1.0, '1 passes to 3 on the right wing.', { b: ['pass', 3, 0.15, 0.6] }],
       ['Seal', 1.0, '5 seals their defender on the right block.', { m: { 5: [[322, 98]] } }],
@@ -109,7 +109,7 @@ export const PRESETS = [
     blurb: 'Everyone clears to the corners and wings so 1 can go one on one.',
     start: { 1: [250, 320], 2: [80, 230], 3: [420, 230], 4: [180, 190], 5: [320, 190] },
     beats: [
-      ['Clear out', 1.5, 'The bigs clear to the corners and the wings get low. The middle is empty.', { m: { 4: [[110, 120], [40, 40]], 5: [[390, 120], [460, 40]], 2: [[60, 150]], 3: [[440, 150]] }, dr: true }],
+      ['Clear out', 1.5, 'The bigs clear to the corners and the wings get low. The middle is empty.', { m: { 4: [[110, 120], [18, 36]], 5: [[390, 120], [482, 36]], 2: [[60, 150]], 3: [[440, 150]] }, dr: true }],
       ['Attack', 1.7, '1 drives at their defender and gets to the rim.', { m: { 1: [[225, 235], [255, 110]] }, pc: { 1: 'late' } }],
       ['Finish', 1.2, '1 finishes.', { b: ['shot', 0.1, 0.6] }],
     ],
@@ -141,7 +141,7 @@ export const PRESETS = [
   def({
     id: 'zone-gap', level: 'Intermediate', name: 'Beat the 2-3 zone', cat: 'Easy', defense: 'zone', zone: '2-3',
     blurb: 'Against a 2-3 zone: flash to the middle, then kick to the open corner.',
-    start: { 1: [250, 320], 2: [90, 240], 3: [410, 240], 4: [40, 45], 5: [330, 70] },
+    start: { 1: [250, 320], 2: [90, 240], 3: [410, 240], 4: [18, 36], 5: [330, 70] },
     beats: [
       ['Set', 1.0, 'Players sit in the gaps of the zone. 5 on the right short block.', { dr: true }],
       ['Flash', 1.4, '5 flashes to the free-throw line, the soft middle of the 2-3.', { m: { 5: [[300, 130], [255, 190]] }, pc: { 5: 'explode' }, dr: true }],
@@ -168,7 +168,7 @@ export const PRESETS = [
   def({
     id: 'pnr', level: 'Beginner', name: 'High pick and roll', cat: 'Pick and roll',
     blurb: '5 screens at the top, 1 attacks, 5 rolls for the pass.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top of the key. Shooters in both corners, 4 on the left wing, 5 at the right elbow.', { dr: true }],
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
@@ -180,7 +180,7 @@ export const PRESETS = [
   def({
     id: 'slip', level: 'Intermediate', name: 'Slip screen', cat: 'Pick and roll',
     blurb: '5 runs up to screen, X5 steps up level to hedge, so 5 slips behind them to the rim.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top of the key. Shooters in both corners, 4 on the left wing, 5 at the right elbow.', { dr: true }],
       ['Fake screen', 1.4, '5 runs up to screen on 1\'s right side. X5 steps up level with 5, ready to jump out when 1 comes off the screen.', { m: { 5: [[305, 250], [290, 292]] }, dr: true }],
@@ -192,7 +192,7 @@ export const PRESETS = [
   def({
     id: 'horns', level: 'Intermediate', name: 'Horns: ball screen', cat: 'Pick and roll',
     blurb: 'Both bigs at the elbows. One screens and rolls, the other pops.',
-    start: { 1: [250, 330], 2: [40, 40], 3: [460, 40], 4: [180, 190], 5: [320, 190] },
+    start: { 1: [250, 330], 2: [18, 36], 3: [482, 36], 4: [180, 190], 5: [320, 190] },
     beats: [
       ['Set', 1.2, 'Horns: 4 and 5 at the elbows, 2 and 3 in the corners.', { dr: true }],
       ['Screen', 1.4, '5 steps up to screen for 1.', { m: { 5: [[285, 300]] }, s: [5], dr: true }],
@@ -227,7 +227,7 @@ export const PRESETS = [
   def({
     id: 'spain', level: 'Advanced', name: 'Spain pick and roll', cat: 'Pick and roll',
     blurb: "A shooter back-screens the roller's defender, then pops for three.",
-    start: { 1: [250, 330], 2: [90, 236], 3: [455, 40], 4: [45, 40], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [90, 236], 3: [480, 36], 4: [20, 36], 5: [330, 190] },
     beats: [
       ['Set', 1.0, '1 up top, 5 at the right elbow, 2 on the left wing.', { dr: true }],
       ['Ball screen', 1.4, '5 sets a ball screen for 1.', { m: { 5: [[285, 300]] }, s: [5], dr: true }],
@@ -240,7 +240,7 @@ export const PRESETS = [
   def({
     id: 'flex', level: 'Intermediate', name: 'Flex', cat: 'Screens off the ball',
     blurb: 'Baseline flex screen, then a down screen for the screener.',
-    start: { 1: [90, 240], 2: [400, 240], 3: [460, 50], 4: [180, 240], 5: [330, 74] },
+    start: { 1: [90, 240], 2: [400, 240], 3: [482, 36], 4: [180, 240], 5: [330, 74] },
     beats: [
       ['Set', 1.0, '1 has it on the left wing. 5 on the right block, 3 in the right corner.', { dr: true }],
       ['Flex cut', 1.7, "3 cuts along the baseline off 5's flex screen.", { m: { 3: [[330, 110], [190, 80]] }, s: [5], pc: { 3: 'explode' } }],
@@ -277,7 +277,7 @@ export const PRESETS = [
   def({
     id: 'ucla', level: 'Intermediate', name: 'UCLA cut', cat: 'Cuts',
     blurb: 'Pass to the wing, then cut off the high post back screen straight to the rim.',
-    start: { 1: [250, 320], 2: [420, 240], 3: [80, 240], 4: [40, 40], 5: [250, 205] },
+    start: { 1: [250, 320], 2: [420, 240], 3: [80, 240], 4: [18, 36], 5: [250, 205] },
     beats: [
       ['Pass to wing', 1.0, '1 passes to 2 on the right wing.', { b: ['pass', 2, 0.15, 0.6] }],
       ['UCLA cut', 1.7, "1 cuts off 5's back screen at the high post, straight to the rim.", { m: { 1: [[275, 250], [232, 190], [245, 85]] }, s: [5], pc: { 1: 'explode' } }],
@@ -328,7 +328,7 @@ export const PRESETS = [
     beats: [
       ['Set', 1.0, '1 on the right wing. 3 low on the left side, 4 on the left block.', { dr: true }],
       ['Baseline drive', 1.6, '1 drives the right baseline.', { m: { 1: [[445, 140], [380, 62]] } }],
-      ['Hammer screen', 1.4, "4 screens 3's defender and 3 fades to the corner.", { m: { 4: [[112, 92]], 3: [[70, 80], [40, 40]] }, s: [4], pc: { 3: 'explode' } }],
+      ['Hammer screen', 1.4, "4 screens 3's defender and 3 fades to the corner.", { m: { 4: [[112, 92]], 3: [[70, 80], [18, 36]] }, s: [4], pc: { 3: 'explode' } }],
       ['Skip pass', 1.0, '1 skips it all the way across to 3.', { b: ['pass', 3, 0.05, 0.6] }],
       ['Corner three', 1.3, '3 shoots.', { b: ['shot', 0.15, 0.7] }],
     ],
@@ -339,7 +339,7 @@ export const PRESETS = [
     start: { 1: [400, 250], 2: [250, 60], 3: [80, 230], 4: [215, 200], 5: [285, 200] },
     beats: [
       ['Set', 1.0, '4 and 5 side by side at the elbows with a gap between them. 2 under the rim.', { dr: true }],
-      ['Doors close', 1.6, '2 runs up through the gap, then 4 and 5 step together to shut the doors.', { m: { 2: [[250, 150], [250, 285]], 4: [[238, 205]], 5: [[262, 205]] }, s: [4, 5], pc: { 2: 'explode', 4: 'late', 5: 'late' }, dr: true }],
+      ['Doors close', 1.6, '2 runs up through the gap, then 4 and 5 step together to shut the doors.', { m: { 2: [[250, 150], [250, 302]], 4: [[238, 205]], 5: [[262, 205]] }, s: [4, 5], pc: { 2: 'explode', 4: 'late', 5: 'late' }, dr: true }],
       ['Pass', 1.0, '1 hits 2 at the top.', { b: ['pass', 2, 0.1, 0.6] }],
       ['Three', 1.3, '2 shoots.', { b: ['shot', 0.15, 0.7] }],
     ],
@@ -348,7 +348,7 @@ export const PRESETS = [
   def({
     id: 'short-roll', level: 'Advanced', name: 'Short roll vs the blitz', cat: 'Pick and roll',
     blurb: 'Both defenders trap the ball, so 5 short-rolls to the free-throw line for a 4-on-3.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top of the key. Shooters in both corners, 4 on the left wing, 5 at the right elbow.', { dr: true }],
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
@@ -360,7 +360,7 @@ export const PRESETS = [
   def({
     id: 'reject', level: 'Advanced', name: 'Reject the screen', cat: 'Pick and roll',
     blurb: 'X1 jumps to the screen side to take it away, so 1 rejects it and drives the other way.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [430, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [430, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top. 4 on the right wing, shooters in both corners, the left wing empty.', { dr: true }],
       ['Screen', 1.4, '5 comes up to screen on 1\'s right. X1 jumps to that side to take the screen away.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
@@ -382,7 +382,7 @@ export const PRESETS = [
   def({
     id: 'closeout', level: 'Intermediate', name: 'Attack the closeout', cat: 'Drives',
     blurb: '1 drives and kicks. X3 flies out at 3, so 3 shot-fakes and drives right past.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [440, 215], 4: [60, 220], 5: [150, 90] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [440, 215], 4: [60, 220], 5: [150, 90] },
     beats: [
       ['Set', 1.0, '1 at the top, 3 on the right wing, the right corner empty.', { dr: true }],
       ['Drive', 1.4, '1 drives the right side of the lane. X3 sags off to help.', { m: { 1: [[285, 260], [300, 175]] }, pc: { 1: 'early' } }],
@@ -394,7 +394,7 @@ export const PRESETS = [
   def({
     id: 'zone-skip', level: 'Intermediate', name: 'Skip it over the zone', cat: 'Vs zone', defense: 'zone', zone: '2-3',
     blurb: 'The 2-3 zone slides to the ball, so 2 skips it over the top to the far corner.',
-    start: { 1: [250, 320], 2: [430, 215], 3: [455, 45], 4: [45, 45], 5: [250, 190] },
+    start: { 1: [250, 320], 2: [430, 215], 3: [480, 36], 4: [20, 36], 5: [250, 190] },
     beats: [
       ['Set', 1.0, 'Against a 2-3 zone: 1 up top, 2 on the right wing, 3 and 4 in the corners, 5 at the free-throw line.', { dr: true }],
       ['Swing', 1.0, '1 swings it to 2 on the right wing.', { b: ['pass', 2, 0.1, 0.6] }],
@@ -407,7 +407,7 @@ export const PRESETS = [
     id: 'switch-seal', level: 'Advanced', name: 'Punish the switch', cat: 'Matchups',
     looks: { o5: { height: 1.26 }, d1: { height: 0.78 } },
     blurb: 'The defense switches the ball screen and leaves a little guard on 5, so 5 seals him in the post.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top, 5 at the right elbow.', { dr: true }],
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
@@ -421,7 +421,7 @@ export const PRESETS = [
     id: 'floater-drop', level: 'Advanced', name: 'Floater over the big', cat: 'Matchups',
     looks: { o1: { height: 0.84 }, d5: { height: 1.34 } },
     blurb: 'Their giant center drops back to the rim, so 1 floats it over him from the lane.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top, 5 at the right elbow. Their center is huge.', { dr: true }],
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
@@ -432,7 +432,7 @@ export const PRESETS = [
   def({
     id: 'low-man', level: 'Advanced', name: 'Low man help', cat: 'Defense', ball: 2,
     blurb: 'Defense: 2 beats X2 baseline, so X5 rotates over from the weak side to stop the layup.',
-    start: { 1: [250, 330], 2: [430, 215], 3: [70, 220], 4: [45, 40], 5: [175, 85] },
+    start: { 1: [250, 330], 2: [430, 215], 3: [70, 220], 4: [20, 36], 5: [175, 85] },
     beats: [
       ['Set', 1.0, '2 has it on the right wing. X5 guards 5 on the weak-side block.', { dr: true }],
       ['Baseline drive', 1.4, '2 beats X2 baseline.', { m: { 2: [[460, 140], [395, 75]] }, pc: { 2: 'explode' } }],
@@ -443,7 +443,7 @@ export const PRESETS = [
   def({
     id: 'help-side', level: 'Intermediate', name: 'Two passes away', cat: 'Defense',
     blurb: 'Defense: when your player is two passes from the ball, sink into the lane to help.',
-    start: { 1: [250, 330], 2: [430, 215], 3: [455, 45], 4: [45, 45], 5: [330, 90] },
+    start: { 1: [250, 330], 2: [430, 215], 3: [480, 36], 4: [20, 36], 5: [330, 90] },
     beats: [
       ['Set', 1.0, '1 has it up top. X4 guards 4 in the left corner.', { dr: true }],
       ['Swing', 1.0, '1 swings it to 2 on the right wing. Now 4 is two passes away.', { b: ['pass', 2, 0.1, 0.6] }],
@@ -454,7 +454,7 @@ export const PRESETS = [
   def({
     id: 'tag-roll', level: 'Advanced', name: 'Tag the roller', cat: 'Defense',
     blurb: 'Defense: on a pick and roll, the weak-side defender steps into the lane to stop the roll.',
-    start: { 1: [250, 330], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 at the top, 5 at the right elbow. X4 guards 4 on the left wing.', { dr: true }],
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side. X5 jumps out to stop the ball.', { m: { 5: [[300, 250], [282, 300]] }, s: [5], dr: true }],
@@ -465,7 +465,7 @@ export const PRESETS = [
   def({
     id: 'under-screen', level: 'Advanced', name: 'Over or under?', cat: 'Defense',
     blurb: 'Defense: the ball handler can\'t shoot, so X1 goes under the screen and meets him on the other side.',
-    start: { 1: [250, 335], 2: [45, 40], 3: [455, 40], 4: [70, 220], 5: [330, 190] },
+    start: { 1: [250, 335], 2: [20, 36], 3: [480, 36], 4: [70, 220], 5: [330, 190] },
     beats: [
       ['Set', 1.2, '1 has it up top. 1 is quick but not a shooter.', { dr: true }],
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 255], [284, 305]] }, s: [5], dr: true }],
@@ -477,7 +477,7 @@ export const PRESETS = [
   def({
     id: 'horns-pop', level: 'Advanced', name: 'Horns: the pop', cat: 'Named plays',
     blurb: 'Horns: 5 screens and rolls. When 4\'s defender sinks to stop the roll, 4 pops open.',
-    start: { 1: [250, 330], 2: [40, 40], 3: [460, 40], 4: [180, 190], 5: [320, 190] },
+    start: { 1: [250, 330], 2: [18, 36], 3: [482, 36], 4: [180, 190], 5: [320, 190] },
     beats: [
       ['Set', 1.2, 'Horns: 4 and 5 at the elbows, 2 and 3 in the corners.', { dr: true }],
       ['Screen', 1.4, '5 steps up to screen for 1.', { m: { 5: [[285, 300]] }, s: [5], dr: true }],
@@ -489,7 +489,7 @@ export const PRESETS = [
   def({
     id: 'spain-roll', level: 'Advanced', name: 'Spain: hit the roll', cat: 'Named plays',
     blurb: 'Spain pick and roll: 2 back-screens 5\'s defender. When 2\'s defender stays home, 5 is open on the roll.',
-    start: { 1: [250, 330], 2: [90, 236], 3: [455, 40], 4: [45, 40], 5: [330, 190] },
+    start: { 1: [250, 330], 2: [90, 236], 3: [480, 36], 4: [20, 36], 5: [330, 190] },
     beats: [
       ['Set', 1.0, '1 up top, 5 at the right elbow, 2 on the left wing.', { dr: true }],
       ['Ball screen', 1.4, '5 sets a ball screen for 1.', { m: { 5: [[285, 300]] }, s: [5], dr: true }],
@@ -512,7 +512,7 @@ export const PRESETS = [
   def({
     id: 'flex-high', level: 'Advanced', name: 'Flex: over the top', cat: 'Named plays',
     blurb: 'The Flex cut: when the cutter\'s defender cheats baseline, the cutter goes over the top into the middle.',
-    start: { 1: [90, 240], 2: [400, 240], 3: [460, 50], 4: [180, 240], 5: [330, 74] },
+    start: { 1: [90, 240], 2: [400, 240], 3: [482, 36], 4: [180, 240], 5: [330, 74] },
     beats: [
       ['Set', 1.0, '1 has it on the left wing. 5 on the right block, 3 in the right corner.', { dr: true }],
       ['Flex screen', 1.3, '5 sets the flex screen. X3 cheats to the baseline side to beat 3 there.', { s: [5], dr: true }],
