@@ -1,16 +1,16 @@
 // Cutline editor: beats on the left, the 3D court in the middle, the inspector on
 // the right and the beat timeline at the bottom.
-import { CourtScene, W } from './scene.js?v=20261115h';
-import { QUIZ } from './quiz.js?v=20261115h';
+import { CourtScene, W } from './scene.js?v=20261118a';
+import { QUIZ } from './quiz.js?v=20261118a';
 import * as THREE from 'three';
-import { PRESETS } from './plays.js?v=20261115h';
+import { PRESETS } from './plays.js?v=20261118a';
 import {
   THEMES, TEAMS, MATCHUPS, teamsOf, SKINS, HAIRS, STYLES, POSITIONS, PACES, ZONES, FLOORS, PAINTS, LINE_COLORS, BORDERS, courtLook, uid, clampUV, newPlay, validate, flipPlay,
   posAt, moveOf, holderAt, actionOf, timing, beatAt, sample, marksFor, thumbSVG,
   libraryIds, loadPlay, savePlay, deletePlay, lastId, savedAt, encodeShare, decodeShare,
-} from './model.js?v=20261115h';
-import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261115h';
-import { icon, hydrateIcons } from './js/icons.js?v=20261115h';
+} from './model.js?v=20261118a';
+import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261118a';
+import { icon, hydrateIcons } from './js/icons.js?v=20261118a';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -692,13 +692,22 @@ function quizTick(f, dt) {
   }
   // Defenders that set up the read ease to their spot, and stay there.
   const { starts } = timing(play);
+  // `then` moves a defender after the freeze (the right rotation in a defense question):
+  // { to: [u, v], at: seconds after the freeze, dur: seconds }.
+  q.held = q.held || {};
   for (const [id, d] of Object.entries(q.scene.defense || {})) {
     if (!f.pos[id]) continue;
-    const t0 = starts[d.beat] + play.beats[d.beat].dur * d.from, t1 = q.freezeT;
-    const k = Math.max(0, Math.min(1, (ui.T - t0) / Math.max(0.1, t1 - t0)));
-    if (k <= 0) continue;
-    const e = k * k * (3 - 2 * k);
-    f.pos[id] = [f.pos[id][0] + (d.to[0] - f.pos[id][0]) * e, f.pos[id][1] + (d.to[1] - f.pos[id][1]) * e];
+    if (d.to) {
+      const t0 = starts[d.beat] + play.beats[d.beat].dur * d.from, t1 = q.freezeT;
+      const k = Math.max(0, Math.min(1, (ui.T - t0) / Math.max(0.1, t1 - t0)));
+      if (k > 0) { const e = k * k * (3 - 2 * k); f.pos[id] = [f.pos[id][0] + (d.to[0] - f.pos[id][0]) * e, f.pos[id][1] + (d.to[1] - f.pos[id][1]) * e]; }
+    }
+    if (!d.then) continue;
+    if (ui.T < q.freezeT) { delete q.held[id]; continue; }
+    if (!q.held[id]) q.held[id] = f.pos[id].slice();
+    const k = Math.max(0, Math.min(1, (ui.T - q.freezeT - (d.then.at || 0)) / (d.then.dur || 0.8))), e = k * k * (3 - 2 * k);
+    const a = q.held[id], b = d.then.to;
+    f.pos[id] = [a[0] + (b[0] - a[0]) * e, a[1] + (b[1] - a[1]) * e];
   }
   if (q.cam === 'fly' && q.fly) { flyTick(q, dt); return; }
   if (q.cam !== 'pov') { for (const x of scene.people.values()) x.setOpacity(1); return; }
