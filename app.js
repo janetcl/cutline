@@ -1,16 +1,16 @@
 // Cutline editor: beats on the left, the 3D court in the middle, the inspector on
 // the right and the beat timeline at the bottom.
-import { CourtScene, W } from './scene.js?v=20261118a';
-import { QUIZ } from './quiz.js?v=20261118a';
+import { CourtScene, W } from './scene.js?v=20261118b';
+import { QUIZ } from './quiz.js?v=20261118b';
 import * as THREE from 'three';
-import { PRESETS } from './plays.js?v=20261118a';
+import { PRESETS } from './plays.js?v=20261118b';
 import {
   THEMES, TEAMS, MATCHUPS, teamsOf, SKINS, HAIRS, STYLES, POSITIONS, PACES, ZONES, FLOORS, PAINTS, LINE_COLORS, BORDERS, courtLook, uid, clampUV, newPlay, validate, flipPlay,
   posAt, moveOf, holderAt, actionOf, timing, beatAt, sample, marksFor, thumbSVG,
   libraryIds, loadPlay, savePlay, deletePlay, lastId, savedAt, encodeShare, decodeShare,
-} from './model.js?v=20261118a';
-import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261118a';
-import { icon, hydrateIcons } from './js/icons.js?v=20261118a';
+} from './model.js?v=20261118b';
+import { Recorder, pickMime, hevcMime, cinematicCamera, QUALITIES, videoSize } from './recorder.js?v=20261118b';
+import { icon, hydrateIcons } from './js/icons.js?v=20261118b';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -50,6 +50,8 @@ function changed({ save = ui.mode === 'edit' } = {}) {
 function undo() { if (!hist.undo.length) return; hist.redo.push(snapshot()); play = validate(JSON.parse(hist.undo.pop())); changed(); }
 function redo() { if (!hist.redo.length) return; hist.undo.push(snapshot()); play = validate(JSON.parse(hist.redo.pop())); changed(); }
 
+// Anonymous usage counts (GoatCounter: no cookies, nothing personal). Skipped on localhost.
+function track(name) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: name, title: name, event: true }); } catch {} }
 function toast(msg, action) {
   const t = $('toast');
   t.innerHTML = `<span>${esc(msg)}</span>` + (action ? `<button type="button">${esc(action.label)}</button>` : '');
@@ -485,6 +487,7 @@ async function unsqueeze(code) {
   return JSON.parse(new TextDecoder().decode(raw));
 }
 async function shareQuestion(q) {
+  track('share-question');
   const code = await squeeze(q);
   const url = `${location.origin}${location.pathname}?mode=quiz#qz=${code}`;
   try { await navigator.clipboard.writeText(url); toast('Link copied. It opens straight into this question.'); } catch { prompt('Copy this link', url); }
@@ -507,6 +510,7 @@ const saveMyQuestions = (list) => { try { localStorage.setItem(MYQ_KEY, JSON.str
 const allQ = () => [...QUIZ, ...myQuestions()];
 const quizScores = () => { try { return JSON.parse(localStorage.getItem(QUIZ_KEY) || '{}'); } catch { return {}; } };
 function enterQuiz(start) {
+  track('open-quiz');
   if (ui.mode === 'watch') exitWatch();
   savePlay(play);
   ui.editPlay = clone(play);
@@ -779,6 +783,7 @@ function answerQuiz(k) {
   q.phase = 'answer';
   const sc = q.scene, skipped = k < 0, right = sc.choices.find((c) => c.correct);
   const pick = skipped ? right : sc.choices[k];
+  track(`quiz/${sc.id || 'mine'}/${skipped ? 'reveal' : pick.correct ? 'right' : 'wrong'}`);
   const card = $('quiz-card'), slow = !calm();
   if (!skipped) { const scores = quizScores(); scores[sc.id] = !!pick.correct; try { localStorage.setItem(QUIZ_KEY, JSON.stringify(scores)); } catch { /* ignore */ } }
   const btns = [...document.querySelectorAll('.quiz-choice')];
@@ -919,6 +924,7 @@ function showQueueItem(i, { autoplay = true } = {}) {
   if (el) el.scrollIntoView({ block: 'nearest' });
 }
 function enterWatch() {
+  track('open-watch');
   if (ui.mode === 'watch') return;
   savePlay(play);
   ui.editPlay = clone(play);
@@ -1388,6 +1394,7 @@ function loadInto(p) {
   selectBeat(-1);
 }
 async function share() {
+  track('share-play');
   const code = await encodeShare(play);
   const url = `${location.origin}${location.pathname}#p=${code}`;
   try { await navigator.clipboard.writeText(url); toast('Link copied. Anyone with it can open a copy of this play.'); } catch { prompt('Copy this link', url); }
@@ -1409,6 +1416,7 @@ function openExport() {
   $('export').showModal();
 }
 function startExport() {
+  track('export');
   const fd = new FormData($('export-form'));
   const q = videoSize(fd.get('quality') || '1080', fd.get('format') || 'landscape');
   const opts = { format: fd.get('format') || 'landscape', camera: fd.get('camera'), captions: fd.get('captions') === 'on', numbers: fd.get('numbers') === 'on', q };
