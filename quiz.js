@@ -387,4 +387,54 @@ export const QUIZ = [
     ],
     rule: 'Can’t shoot? Go under. Can shoot? Go over.',
   },
+  // ---------- Batch 3: named plays, and what to do when the defense breaks them ----------
+  {
+    id: 'horns-pop', title: 'Horns: when they stop the roll', play: 'preset-horns-pop', you: 'o4', freeze: [2, 0.4],
+    defense: { d4: { beat: 2, from: 0.05, to: [238, 128] } },
+    prompt: 'This is Horns: two bigs at the elbows. 5 screened and is rolling, and your defender just sank to stop him. What do you do?',
+    choices: [
+      { label: 'Roll to the rim with 5', why: 'Your defender is already in the paint. Two rollers just crowd the spot.' },
+      { label: 'Pop out to the wing', correct: true, why: 'Your defender left to stop the roll, so the wing is open. That’s the whole point of Horns.' },
+      { label: 'Set a second screen for 1', why: '1 already turned the corner. A second screen just slows him down.' },
+      { label: 'Dive to the dunker spot', why: 'That’s right where your defender is standing.' },
+    ],
+    rule: 'Horns: they stop the roll → the other big pops.',
+  },
+  {
+    id: 'spain-roll', title: 'Spain: the shooter is covered', play: 'preset-spain-roll', you: 'o1', freeze: [2, 0.78],
+    // 2's defender stays home on 2; 5's defender is stuck behind 2's back screen.
+    defense: { d2: { beat: 2, from: 0.2, to: [240, 252] }, d5: { beat: 2, from: 0.3, to: [292, 222] } },
+    prompt: 'This is a Spain pick and roll: 2 back-screens 5’s defender, then pops. But 2’s defender stayed with 2. Who do you pass to?',
+    choices: [
+      { label: 'Swing it to 2 for three', why: 'That’s the play’s usual finish, but 2’s defender stayed right with them.' },
+      { label: 'Pull up yourself', why: 'You’d pass up a layup for a contested jumper.' },
+      { label: 'Kick it to 3 in the corner', why: 'X3 is still home. The open player is in the paint.' },
+      { label: 'Hit 5 on the roll', correct: true, why: '5’s defender ran into the back screen and nobody switched. 5 is alone at the rim.' },
+    ],
+    rule: 'Spain: they stay with the shooter → hit the roll.',
+  },
+  {
+    id: 'chicago-back', title: 'Chicago: he jumped the handoff', play: 'preset-chicago-back', you: 'o2', freeze: [2, 0.2],
+    defense: { d2: { beat: 1, from: 0.6, to: [182, 288] } },
+    prompt: 'This is Chicago: you come off 4’s pin-down into a handoff from 5. Your defender has jumped ahead, between you and the handoff. What do you do?',
+    choices: [
+      { label: 'Take the handoff anyway', why: 'He’s sitting right on it. That’s a deflection or a turnover.' },
+      { label: 'Cut backdoor to the rim', correct: true, why: 'He’s on the ball side of you, so everything behind him is open. 5 can bounce it to you.' },
+      { label: 'Pop back out to the wing', why: 'That gets you open far from the rim. The backdoor is a layup.' },
+      { label: 'Set a screen for 5', why: 'You’d give up the advantage you just earned.' },
+    ],
+    rule: 'Chicago: he jumps the handoff → go backdoor.',
+  },
+  {
+    id: 'flex-high', title: 'Flex: he cheated baseline', play: 'preset-flex-high', you: 'o3', freeze: [1, 0.85],
+    defense: { d3: { beat: 1, from: 0.2, to: [372, 54] } },
+    prompt: 'This is the Flex: you cut off 5’s screen on the block. Your defender has cheated to the baseline side to beat you there. Which way do you cut?',
+    choices: [
+      { label: 'Cut baseline anyway', why: 'That’s exactly where he’s waiting.' },
+      { label: 'Stay in the corner', why: 'You’d waste the screen and leave 1 with nobody to hit.' },
+      { label: 'Cut over the top, into the middle', correct: true, why: 'He took the baseline, so the screen is now between you and him on the high side. The middle is open.' },
+      { label: 'Pop out to the wing', why: 'Open, but far from the rim. The cut over the top is a layup.' },
+    ],
+    rule: 'Flex: he cheats baseline → cut over the top.',
+  },
 ];

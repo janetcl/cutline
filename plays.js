@@ -2,7 +2,7 @@
 // Shorthand per beat: m = moves (player number → points, the last one is where they
 // end up), s = screeners, pc = pace, b = ball ['pass', to, t0, t1] or ['shot', t0, t1],
 // dr = dribble in place. looks = per-player size for matchup plays.
-import { newPlay, uid, validate } from './model.js?v=20261118d';
+import { newPlay, uid, validate } from './model.js?v=20261118e';
 
 function def({ id, name, cat, blurb, start, ball = 1, beats, size = 5, defense = 'man', zone, level, looks }) {
   const p = newPlay({ name, size, defense });
@@ -471,6 +471,53 @@ export const PRESETS = [
       ['Screen', 1.4, '5 comes up and sets a ball screen on 1\'s right side.', { m: { 5: [[300, 255], [284, 305]] }, s: [5], dr: true }],
       ['Under', 1.4, 'X1 slips under the screen and beats 1 to the other side. No lane.', { m: { 1: [[318, 318], [352, 292]] }, dr: true }],
       ['Reset', 1.2, '1 has nowhere to go and gives it up to 4.', { b: ['pass', 4, 0.15, 0.7] }],
+    ],
+  }),
+  // ---------- Batch 3: named plays, and what to do when the defense breaks them ----------
+  def({
+    id: 'horns-pop', level: 'Advanced', name: 'Horns: the pop', cat: 'Named plays',
+    blurb: 'Horns: 5 screens and rolls. When 4\'s defender sinks to stop the roll, 4 pops open.',
+    start: { 1: [250, 330], 2: [40, 40], 3: [460, 40], 4: [180, 190], 5: [320, 190] },
+    beats: [
+      ['Set', 1.2, 'Horns: 4 and 5 at the elbows, 2 and 3 in the corners.', { dr: true }],
+      ['Screen', 1.4, '5 steps up to screen for 1.', { m: { 5: [[285, 300]] }, s: [5], dr: true }],
+      ['Roll and pop', 1.8, '1 comes off the screen. 5 rolls to the rim, and 4\'s defender sinks to stop him. 4 pops to the wing.', { m: { 1: [[330, 295], [360, 270]], 5: [[300, 190], [270, 92]], 4: [[150, 250], [140, 290]] }, pc: { 5: 'explode' } }],
+      ['Pass', 1.0, '1 throws it across to 4.', { b: ['pass', 4, 0.1, 0.65] }],
+      ['Jumper', 1.3, '4 catches and shoots.', { b: ['shot', 0.15, 0.7] }],
+    ],
+  }),
+  def({
+    id: 'spain-roll', level: 'Advanced', name: 'Spain: hit the roll', cat: 'Named plays',
+    blurb: 'Spain pick and roll: 2 back-screens 5\'s defender. When 2\'s defender stays home, 5 is open on the roll.',
+    start: { 1: [250, 330], 2: [90, 236], 3: [455, 40], 4: [45, 40], 5: [330, 190] },
+    beats: [
+      ['Set', 1.0, '1 up top, 5 at the right elbow, 2 on the left wing.', { dr: true }],
+      ['Ball screen', 1.4, '5 sets a ball screen for 1.', { m: { 5: [[285, 300]] }, s: [5], dr: true }],
+      ['Back screen', 1.7, "1 drives right. 5 rolls while 2 back-screens 5's defender.", { m: { 1: [[330, 296], [372, 258]], 5: [[300, 200], [268, 95]], 2: [[190, 215], [262, 226]] }, s: [2], pc: { 5: 'explode' } }],
+      ['Pass', 1.0, '2\'s defender stayed with 2, so 1 hits 5 rolling to the rim.', { b: ['pass', 5, 0.1, 0.55] }],
+      ['Finish', 1.3, '5 lays it in.', { m: { 5: [[258, 72]] }, b: ['shot', 0.3, 0.7] }],
+    ],
+  }),
+  def({
+    id: 'chicago-back', level: 'Advanced', name: 'Chicago: backdoor', cat: 'Named plays',
+    blurb: 'Chicago: a pin-down into a handoff. When 2\'s defender jumps the handoff, 2 cuts backdoor.',
+    start: { 1: [250, 320], 2: [130, 60], 3: [440, 60], 4: [120, 170], 5: [330, 190] },
+    beats: [
+      ['Pass to the slot', 1.2, '5 lifts to the left slot and 1 passes to 5.', { m: { 5: [[260, 260], [195, 300]] }, b: ['pass', 5, 0.5, 0.85] }],
+      ['Pin-down', 1.5, '4 screens down and 2 comes up off it, heading for the handoff.', { m: { 4: [[140, 105]], 2: [[100, 140], [140, 240]] }, s: [4], pc: { 2: 'explode' } }],
+      ['Backdoor', 1.4, 'X2 jumps ahead of the handoff, so 2 plants and cuts backdoor.', { m: { 2: [[158, 262], [205, 150], [232, 92]] }, pc: { 2: 'explode' }, b: ['pass', 2, 0.55, 0.92] }],
+      ['Layup', 1.2, '2 lays it in.', { m: { 2: [[245, 70]] }, b: ['shot', 0.15, 0.65] }],
+    ],
+  }),
+  def({
+    id: 'flex-high', level: 'Advanced', name: 'Flex: over the top', cat: 'Named plays',
+    blurb: 'The Flex cut: when the cutter\'s defender cheats baseline, the cutter goes over the top into the middle.',
+    start: { 1: [90, 240], 2: [400, 240], 3: [460, 50], 4: [180, 240], 5: [330, 74] },
+    beats: [
+      ['Set', 1.0, '1 has it on the left wing. 5 on the right block, 3 in the right corner.', { dr: true }],
+      ['Flex screen', 1.3, '5 sets the flex screen. X3 cheats to the baseline side to beat 3 there.', { s: [5], dr: true }],
+      ['Over the top', 1.5, '3 cuts over the top of the screen into the middle.', { m: { 3: [[395, 115], [310, 140], [245, 135]] }, pc: { 3: 'explode' }, b: ['pass', 3, 0.7, 0.95] }],
+      ['Layup', 1.2, '3 takes one step and lays it in.', { m: { 3: [[240, 85]] }, b: ['shot', 0.3, 0.75] }],
     ],
   }),
 ];
