@@ -2,7 +2,7 @@
 // Shorthand per beat: m = moves (player number → points, the last one is where they
 // end up), s = screeners, pc = pace, b = ball ['pass', to, t0, t1] or ['shot', t0, t1],
 // dr = dribble in place. looks = per-player size for matchup plays.
-import { newPlay, uid, validate } from './model.js?v=20261118f';
+import { newPlay, uid, validate } from './model.js?v=20261125a';
 
 function def({ id, name, cat, blurb, start, ball = 1, beats, size = 5, defense = 'man', zone, level, looks }) {
   const p = newPlay({ name, size, defense });
@@ -518,6 +518,76 @@ export const PRESETS = [
       ['Flex screen', 1.3, '5 sets the flex screen. X3 cheats to the baseline side to beat 3 there.', { s: [5], dr: true }],
       ['Over the top', 1.5, '3 cuts over the top of the screen into the middle.', { m: { 3: [[395, 115], [310, 140], [245, 135]] }, pc: { 3: 'explode' }, b: ['pass', 3, 0.7, 0.95] }],
       ['Layup', 1.2, '3 takes one step and lays it in.', { m: { 3: [[240, 85]] }, b: ['shot', 0.3, 0.75] }],
+    ],
+  }),
+  // ---------- Batch 4: spacing, closeouts, matchups, one pass away ----------
+  def({
+    id: 'clear-lane', level: 'Intermediate', name: 'Clear the lane', cat: 'Drives',
+    blurb: '1 drives the middle, so 5 gets out of the lane to the dunker spot. X5 steps up and 1 dumps it off.',
+    start: { 1: [250, 330], 2: [18, 36], 3: [482, 36], 4: [70, 220], 5: [268, 118] },
+    beats: [
+      ['Set', 1.0, '1 up top. 5 is standing in the middle of the lane.', { dr: true }],
+      ['Drive', 1.2, '1 drives straight down the middle, right at 5.', { m: { 1: [[255, 255]] }, pc: { 1: 'early' } }],
+      ['Clear out', 1.3, '5 slides out of the lane to the right dunker spot. 1 keeps coming.', { m: { 1: [[250, 175]], 5: [[320, 85], [345, 42]] } }],
+      ['Dump off', 1.0, 'X5 steps up to stop 1, so 1 dumps it off to 5.', { m: { 1: [[250, 150]] }, b: ['pass', 5, 0.15, 0.55] }],
+      ['Dunk', 1.2, '5 goes straight up and dunks it.', { m: { 5: [[298, 56]] }, b: ['shot', 0.25, 0.7] }],
+    ],
+  }),
+  def({
+    id: 'closeout-d', level: 'Intermediate', name: 'Close out under control', cat: 'Defense',
+    blurb: 'Defense: X3 helps on the drive, then sprints out to 3 and chops his feet, so 3 can\'t shoot or drive.',
+    start: { 1: [250, 330], 2: [18, 36], 3: [430, 222], 4: [70, 220], 5: [175, 85] },
+    beats: [
+      ['Set', 1.0, '1 up top, 3 on the right wing.', { dr: true }],
+      ['Drive', 1.4, '1 drives the right side of the lane. X3 sags in to help.', { m: { 1: [[282, 262], [298, 190]] }, pc: { 1: 'early' } }],
+      ['Kick out', 1.1, '1 kicks it out to 3.', { b: ['pass', 3, 0.05, 0.5] }],
+      ['Contest', 1.3, 'X3 sprints, then chops his feet, high hand up. 3 shot-fakes and X3 stays down.', { dr: true }],
+      ['Reset', 1.0, 'No shot, no lane. 3 swings it back to 1.', { m: { 1: [[255, 320]] }, b: ['pass', 1, 0.2, 0.7] }],
+    ],
+  }),
+  def({
+    id: 'shoot-over', level: 'Intermediate', name: 'Shoot over the little guy', cat: 'Matchups',
+    looks: { o3: { height: 1.2 }, d3: { height: 0.8 } },
+    blurb: 'A much smaller guard closes out on 3, so 3 rises up and shoots right over him.',
+    start: { 1: [250, 330], 2: [18, 36], 3: [432, 224], 4: [70, 220], 5: [175, 85] },
+    beats: [
+      ['Set', 1.0, '1 up top, 3 on the right wing. X3 is a foot shorter than 3.', { dr: true }],
+      ['Swing', 1.1, '1 swings it to 3.', { b: ['pass', 3, 0.1, 0.6] }],
+      ['Shoot', 2.0, '3 squares up, rises straight up and shoots over the top.', { b: ['shot', 0.45, 0.85] }],
+    ],
+  }),
+  def({
+    id: 'one-more', level: 'Intermediate', name: 'One more pass', cat: 'Drives',
+    blurb: '1 drives, X3 helps, and 1 kicks to 2. X2 flies at 2, so 2 swings it to 3 in the corner.',
+    start: { 1: [250, 330], 2: [430, 222], 3: [482, 36], 4: [70, 220], 5: [175, 85] },
+    beats: [
+      ['Set', 1.0, '1 up top, 2 on the right wing, 3 in the right corner.', { dr: true }],
+      ['Drive', 1.4, '1 drives the right side of the lane. X3 leaves the corner to help.', { m: { 1: [[282, 262], [300, 192]] }, pc: { 1: 'early' } }],
+      ['Kick out', 1.1, '1 kicks it to 2, and X2 sprints out at him.', { b: ['pass', 2, 0.05, 0.5] }],
+      ['One more', 1.0, '2 swings it right on to 3 in the corner.', { b: ['pass', 3, 0.05, 0.55] }],
+      ['Three', 1.3, '3 catches and shoots. Nobody is there.', { b: ['shot', 0.15, 0.7] }],
+    ],
+  }),
+  def({
+    id: 'deny', level: 'Intermediate', name: 'One pass away', cat: 'Defense',
+    blurb: 'Defense: X2 is one pass from the ball, so he denies the pass to 2 and 1 has to go the other way.',
+    start: { 1: [250, 330], 2: [430, 224], 3: [482, 36], 4: [70, 220], 5: [175, 85] },
+    beats: [
+      ['Set', 1.0, '1 has it up top. X2 guards 2 on the right wing, one pass away.', { dr: true }],
+      ['Get open', 1.3, '2 steps out to get open, and 1 looks his way.', { m: { 2: [[446, 252]] }, dr: true }],
+      ['No pass', 1.3, 'The pass to 2 isn\'t there, so 1 swings it to 4 on the other side.', { b: ['pass', 4, 0.3, 0.85] }],
+    ],
+  }),
+  def({
+    id: 'lift', level: 'Intermediate', name: 'Lift out of the corner', cat: 'Drives', ball: 2,
+    blurb: '2 drives baseline at the corner, so 3 lifts up to the wing behind the drive for the kick-out three.',
+    start: { 1: [250, 330], 2: [430, 222], 3: [482, 36], 4: [70, 220], 5: [175, 85] },
+    beats: [
+      ['Set', 1.0, '2 has it on the right wing, 3 is in the right corner.', { dr: true }],
+      ['Baseline drive', 1.3, '2 beats X2 baseline, driving right at the corner.', { m: { 2: [[452, 160], [420, 112]] }, pc: { 2: 'explode' } }],
+      ['Lift', 1.3, '3 lifts up to the wing behind the drive. X3 steps in to stop 2.', { m: { 2: [[400, 92]], 3: [[480, 150], [444, 236]] } }],
+      ['Kick out', 1.0, '2 kicks it back out to 3.', { b: ['pass', 3, 0.1, 0.6] }],
+      ['Three', 1.3, '3 catches and shoots.', { b: ['shot', 0.15, 0.7] }],
     ],
   }),
 ];

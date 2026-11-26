@@ -437,4 +437,83 @@ export const QUIZ = [
     ],
     rule: 'Flex: he cheats baseline → cut over the top.',
   },
+  // ---------- Batch 4 ----------
+  {
+    id: 'clear-lane', title: 'Your guard is driving at you', play: 'preset-clear-lane', you: 'o5', freeze: [1, 0.95],
+    // X5 steps up to stop 1 once you've cleared.
+    defense: { d5: { beat: 2, from: 0.4, to: [262, 150] } },
+    prompt: 'You’re standing in the middle of the lane, and 1 is driving straight down the middle at you. What do you do?',
+    choices: [
+      { label: 'Post up right where you are', why: 'You’re standing in his lane. Your defender can stop 1 and you without moving.' },
+      { label: 'Step up and screen for 1', why: 'He’s already going. A screen now just stops his drive.' },
+      { label: 'Slide to the dunker spot', correct: true, why: 'Get out of his way, along the baseline. If your defender steps up to stop 1, you’re alone at the rim for a dump-off.' },
+      { label: 'Pop out to the elbow', why: 'That’s open, but far from the rim. The dump-off from the dunker spot is a dunk.' },
+    ],
+    rule: 'Guard drives at you → clear to the dunker spot.',
+  },
+  {
+    id: 'closeout-d', title: 'Defense: close out', play: 'preset-closeout-d', you: 'd3', freeze: [2, 0.3],
+    // You sag in to help on the drive, then close out short and balanced.
+    defense: { d3: { beat: 1, from: 0.2, to: [338, 205], then: { to: [414, 210], at: 0, dur: 1.0 } } },
+    prompt: 'You helped on 1’s drive, and now he’s kicking it out to your player, 3, on the wing. 3 can shoot and drive. How do you close out?',
+    choices: [
+      { label: 'Sprint out and jump at the shot', why: 'He shot-fakes, you fly by, and he has a free lane to the rim.' },
+      { label: 'Sprint, then chop your feet, high hand', correct: true, why: 'Sprint the first half, then short choppy steps. You get a hand up on the shot and you’re still balanced if he drives.' },
+      { label: 'Stay in the lane and give him the shot', why: 'He can shoot. That’s a wide-open three.' },
+      { label: 'Jog out, stay in front', why: 'You’re in front, but too late. He shoots before you get there.' },
+    ],
+    rule: 'Close out: sprint, then chop your feet. High hand.',
+  },
+  {
+    id: 'shoot-over', title: 'He can’t reach your shot', play: 'preset-shoot-over', you: 'o3', freeze: [1, 0.85],
+    // Little X3 runs out at you.
+    defense: { d3: { beat: 1, from: 0.2, to: [398, 184] } },
+    prompt: 'You’re tall and you can shoot. The ball is coming to you on the wing, and the defender running at you is a foot shorter. What do you do?',
+    choices: [
+      { label: 'Drive past him', why: 'X5 is waiting in the paint. The little guy can’t bother your jumper, so why go into traffic?' },
+      { label: 'Rise up and shoot over him', correct: true, why: 'He can’t reach your release. A clean look over a small defender is a great shot.' },
+      { label: 'Swing it back to 1', why: 'You’re the best shot on the floor right now. Don’t give it away.' },
+      { label: 'Feed 5 in the post', why: 'X5 is right on him. You’re the open one.' },
+    ],
+    rule: 'Little defender on a shooter → shoot right over him.',
+  },
+  {
+    id: 'one-more', title: 'You’re open. He’s more open.', play: 'preset-one-more', you: 'o2', freeze: [2, 0.75],
+    // X3 left the corner to help on the drive; X2 sprints out at you.
+    defense: { d3: { beat: 1, from: 0.2, to: [352, 128] }, d2: { beat: 2, from: 0.1, to: [414, 208] } },
+    prompt: 'You just caught the kick-out on the right wing. Your defender is sprinting at you, and 3’s defender is still in the lane from helping. What do you do?',
+    choices: [
+      { label: 'Shoot it before he gets there', why: 'He’s almost in your face. That’s a contested three when 3 is wide open.' },
+      { label: 'Shot fake and drive', why: 'X3 is still in the lane, waiting for that drive.' },
+      { label: 'Swing it back to 1', why: 'That’s away from the open man. X3 gets back to the corner.' },
+      { label: 'Swing it to 3 in the corner', correct: true, why: 'Your defender is coming at you and 3’s is still in the paint. One more pass beats them both.' },
+    ],
+    rule: 'Good shot vs a great shot → make one more pass.',
+  },
+  {
+    id: 'deny', title: 'Defense: one pass away', play: 'preset-deny', you: 'd2', freeze: [1, 0.55],
+    // You step into the passing lane, between 2 and the ball.
+    defense: { d2: { then: { to: [420, 262], at: 0, dur: 0.6 } } },
+    prompt: 'You’re guarding 2 on the right wing. 1 has the ball up top, one pass away from your player. Where do you stand?',
+    choices: [
+      { label: 'Sag into the lane to help', why: 'That’s for two passes away. One pass away, he catches it and shoots.' },
+      { label: 'Hand and foot in the passing lane', correct: true, why: 'One pass away, make that pass hard. See your player and the ball, and 1 has to go somewhere else.' },
+      { label: 'Stay between him and the rim', why: 'You let him catch it with a head start. Make him work for the catch.' },
+      { label: 'Turn and face-guard him', why: 'You lose the ball, and he goes backdoor behind you.' },
+    ],
+    rule: 'One pass away → deny. Two passes away → help.',
+  },
+  {
+    id: 'lift', title: 'He’s driving at your corner', play: 'preset-lift', you: 'o3', freeze: [1, 0.7],
+    // X3 steps in to stop the drive.
+    defense: { d3: { beat: 1, from: 0.5, to: [418, 70] } },
+    prompt: 'You’re in the right corner. 2 just beat their defender baseline and is driving right at you. What do you do?',
+    choices: [
+      { label: 'Stay in the corner', why: 'He’s driving into your spot. Now one defender can stop him and guard you.' },
+      { label: 'Cut to the rim', why: 'That’s where he’s taking the ball. Now two of you are in the same spot.' },
+      { label: 'Come get the ball', why: 'Moving toward him brings your defender into his way.' },
+      { label: 'Lift up to the wing', correct: true, why: 'Get behind the drive. When your defender steps in to stop 2, you’re open and right in his eyes for the kick-out.' },
+    ],
+    rule: 'Baseline drive at your corner → lift to the wing.',
+  },
 ];
